@@ -36,6 +36,11 @@ com.tripfit.tripfit
 - `./gradlew test`로 CI·로컬 검증
 - 새 API·서비스는 해당 레이어 테스트 추가 권장
 
+## Design Reference
+
+- Figma Wireframe v1: [figma-wireframe-v1.md](../product/design/figma-wireframe-v1.md)
+- ERD 설계 시 와이어프레임의 리소스 초안(trip_room, availability 등) 참고
+
 ## Data Model
 
 - ERD·테이블 정의: [erd.md](architecture/erd.md)
