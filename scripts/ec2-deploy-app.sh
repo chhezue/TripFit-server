@@ -27,6 +27,15 @@ log() {
   printf '[ec2-deploy-app] %s\n' "$*"
 }
 
+docker logout ghcr.io 2>/dev/null || true
+if [[ -n "${GHCR_PAT:-}" ]]; then
+  : "${GHCR_USERNAME:?GHCR_USERNAME is required with GHCR_PAT}"
+  log "logging in to ghcr.io as $GHCR_USERNAME"
+  echo "$GHCR_PAT" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+else
+  log "WARN: GHCR_PAT not set — private package pull will fail"
+fi
+
 log "pulling $GHCR_IMAGE"
 docker compose pull app
 

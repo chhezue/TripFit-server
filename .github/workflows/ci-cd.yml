@@ -68,19 +68,23 @@ jobs:
         env:
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
           GHCR_IMAGE: ${{ steps.image.outputs.full }}:latest
-          GHCR_USER: ${{ github.repository_owner }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: GHCR_PAT,GHCR_IMAGE,GHCR_USER,SPRING_DATASOURCE_USERNAME,SPRING_DATASOURCE_PASSWORD
+          envs: GHCR_PAT,GHCR_IMAGE,GHCR_USERNAME,SPRING_DATASOURCE_USERNAME,SPRING_DATASOURCE_PASSWORD
           script: |
             set -euo pipefail
-            if [[ -n "${GHCR_PAT:-}" ]]; then
-              echo "$GHCR_PAT" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            if [[ -z "${GHCR_PAT:-}" ]]; then
+              echo "FAIL: GHCR_PAT secret is required (org packages are private)"
+              exit 1
             fi
+            docker logout ghcr.io 2>/dev/null || true
+            ghcr_user="${GHCR_USERNAME:-${{ github.actor }}}"
+            echo "$GHCR_PAT" | docker login ghcr.io -u "$ghcr_user" --password-stdin
             cd "${{ secrets.EC2_DEPLOY_PATH }}"
             ghcr_image="${GHCR_IMAGE:-}"
             db_user="${SPRING_DATASOURCE_USERNAME:-}"
