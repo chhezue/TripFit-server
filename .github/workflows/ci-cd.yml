@@ -99,15 +99,18 @@ jobs:
             export SPRING_DATASOURCE_USERNAME="${db_user:?SPRING_DATASOURCE_USERNAME secret is required}"
             export SPRING_DATASOURCE_PASSWORD="${db_pass:?SPRING_DATASOURCE_PASSWORD secret is required}"
             docker compose pull app
-            docker compose up -d app
+            docker compose up -d
             app_port="${APP_PORT:-8080}"
+            nginx_port="${NGINX_HTTP_PORT:-80}"
             for i in $(seq 1 24); do
-              if curl -fsS "http://localhost:${app_port}/actuator/health/readiness" >/dev/null 2>&1; then
-                echo "OK readiness"
+              if curl -fsS "http://localhost:${nginx_port}/health" >/dev/null 2>&1 \
+                && curl -fsS "http://localhost:${app_port}/actuator/health/readiness" >/dev/null 2>&1; then
+                echo "OK nginx + app readiness"
                 exit 0
               fi
               sleep 5
             done
             echo "FAIL readiness timeout"
+            docker logs tripfit-nginx 2>&1 | tail -40
             docker logs tripfit-app 2>&1 | tail -80
             exit 1

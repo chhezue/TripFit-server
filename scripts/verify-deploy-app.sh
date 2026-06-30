@@ -19,6 +19,9 @@ elif [[ -f "$ROOT_DIR/.env" ]]; then
 fi
 
 APP_PORT="${APP_PORT:-8080}"
+NGINX_HTTP_PORT="${NGINX_HTTP_PORT:-80}"
+CERTBOT_DOMAIN="${CERTBOT_DOMAIN:-api.tripfit.online}"
+VERIFY_TLS="${VERIFY_TLS:-false}"
 MYSQL_HOST="${MYSQL_HOST:-}"
 MYSQL_PORT="${MYSQL_PORT:-3306}"
 VERIFY_FLYWAY="${VERIFY_FLYWAY:-false}"
@@ -44,6 +47,29 @@ check_app_health() {
     log "OK app readiness endpoint"
   else
     log "FAIL app readiness (http://localhost:${APP_PORT}/actuator/health/readiness)"
+    failures=$((failures + 1))
+  fi
+}
+
+check_nginx_health() {
+  if curl -fsS "http://localhost:${NGINX_HTTP_PORT}/health" >/dev/null; then
+    log "OK nginx health endpoint"
+  else
+    log "FAIL nginx health (http://localhost:${NGINX_HTTP_PORT}/health)"
+    failures=$((failures + 1))
+  fi
+}
+
+check_nginx_tls() {
+  if [[ "$VERIFY_TLS" != "true" ]]; then
+    log "SKIP TLS check (VERIFY_TLS=true to enable)"
+    return 0
+  fi
+
+  if curl -fsS "https://${CERTBOT_DOMAIN}/health" >/dev/null; then
+    log "OK https health (https://${CERTBOT_DOMAIN}/health)"
+  else
+    log "FAIL https health (https://${CERTBOT_DOMAIN}/health)"
     failures=$((failures + 1))
   fi
 }
@@ -83,8 +109,12 @@ check_app_logs() {
   fi
 }
 
-log "starting app-only verification (VERIFY_FLYWAY=${VERIFY_FLYWAY})"
+log "starting EC2 A verification (nginx + app API, VERIFY_FLYWAY=${VERIFY_FLYWAY})"
+check_container_running tripfit-certbot
+check_container_running tripfit-nginx
 check_container_running tripfit-app
+check_nginx_health
+check_nginx_tls
 check_app_health
 check_remote_mysql
 check_app_logs

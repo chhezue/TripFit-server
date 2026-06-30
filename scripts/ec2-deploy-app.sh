@@ -36,21 +36,27 @@ else
   log "WARN: GHCR_PAT not set — private package pull will fail"
 fi
 
-log "pulling $GHCR_IMAGE"
+log "pulling app image"
 docker compose pull app
 
-log "starting app"
-docker compose up -d app
+log "ensuring TLS material for nginx"
+"${ROOT_DIR}/scripts/ensure-ssl-certs.sh"
 
-log "waiting for readiness (port $APP_PORT)"
+log "starting stack (nginx, certbot, app)"
+docker compose up -d
+
+nginx_port="${NGINX_HTTP_PORT:-80}"
+log "waiting for readiness (app:${APP_PORT}, nginx:${nginx_port})"
 for _ in $(seq 1 24); do
-  if curl -fsS "http://localhost:${APP_PORT}/actuator/health/readiness" >/dev/null; then
-    log "OK readiness"
+  if curl -fsS "http://localhost:${APP_PORT}/actuator/health/readiness" >/dev/null \
+    && curl -fsS "http://localhost:${nginx_port}/health" >/dev/null; then
+    log "OK app + nginx readiness"
     exit 0
   fi
   sleep 5
 done
 
 log "FAIL readiness timeout"
+docker logs tripfit-nginx 2>&1 | tail -40
 docker logs tripfit-app 2>&1 | tail -80
 exit 1
