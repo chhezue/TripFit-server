@@ -23,18 +23,26 @@ docker compose run --rm --entrypoint sh certbot -c '
   fi
 '
 
-if docker compose run --rm --entrypoint "test -f /etc/letsencrypt/live/${PRIMARY_DOMAIN}/fullchain.pem" certbot 2>/dev/null; then
+if docker compose run --rm --entrypoint sh certbot -c \
+  "test -f /etc/letsencrypt/live/${PRIMARY_DOMAIN}/fullchain.pem"; then
   log "OK certificate exists: ${PRIMARY_DOMAIN}"
   exit 0
 fi
 
 log "WARN no certificate — creating temporary self-signed (run init-letsencrypt.sh)"
 path="/etc/letsencrypt/live/${PRIMARY_DOMAIN}"
-docker compose run --rm --entrypoint "\
-  mkdir -p '${path}' && \
-  openssl req -x509 -nodes -newkey rsa:${RSA_KEY_SIZE} -days 30\
+docker compose run --rm --entrypoint sh certbot -c "
+  mkdir -p '${path}' &&
+  openssl req -x509 -nodes -newkey rsa:${RSA_KEY_SIZE} -days 30 \
     -keyout '${path}/privkey.pem' \
     -out '${path}/fullchain.pem' \
-    -subj '/CN=${PRIMARY_DOMAIN}'" certbot
+    -subj '/CN=${PRIMARY_DOMAIN}'
+"
+
+if ! docker compose run --rm --entrypoint sh certbot -c \
+  "test -f /etc/letsencrypt/live/${PRIMARY_DOMAIN}/fullchain.pem"; then
+  log "FAIL: certificate missing after bootstrap — ${PRIMARY_DOMAIN}"
+  exit 1
+fi
 
 log "temporary cert created — browsers will warn until init-letsencrypt.sh runs"

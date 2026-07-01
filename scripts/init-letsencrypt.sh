@@ -61,25 +61,27 @@ docker compose run --rm --entrypoint sh certbot -c '
 
 log "[2/6] dummy certificate (nginx 443 기동용)"
 path="/etc/letsencrypt/live/${PRIMARY_DOMAIN}"
-docker compose run --rm --entrypoint "\
-  mkdir -p '${path}' && \
-  openssl req -x509 -nodes -newkey rsa:${RSA_KEY_SIZE} -days 1\
+docker compose run --rm --entrypoint sh certbot -c "
+  mkdir -p '${path}' &&
+  openssl req -x509 -nodes -newkey rsa:${RSA_KEY_SIZE} -days 1 \
     -keyout '${path}/privkey.pem' \
     -out '${path}/fullchain.pem' \
-    -subj '/CN=${PRIMARY_DOMAIN}'" certbot
+    -subj '/CN=${PRIMARY_DOMAIN}'
+"
 
 log "[3/6] start nginx (+ app dependency)"
 docker compose up -d nginx
 
 log "[4/6] remove dummy certificate"
-docker compose run --rm --entrypoint "\
+docker compose run --rm --entrypoint sh certbot -c "
   rm -Rf /etc/letsencrypt/live/${PRIMARY_DOMAIN} \
     /etc/letsencrypt/archive/${PRIMARY_DOMAIN} \
-    /etc/letsencrypt/renewal/${PRIMARY_DOMAIN}.conf" certbot
+    /etc/letsencrypt/renewal/${PRIMARY_DOMAIN}.conf
+"
 
 log "[5/6] certbot certonly — ${PRIMARY_DOMAIN}"
 # shellcheck disable=SC2086
-docker compose run --rm --entrypoint "\
+docker compose run --rm --entrypoint sh certbot -c "
   certbot certonly --webroot -w /var/www/certbot \
     ${STAGING_ARG} \
     -d ${PRIMARY_DOMAIN} \
@@ -87,7 +89,8 @@ docker compose run --rm --entrypoint "\
     --rsa-key-size ${RSA_KEY_SIZE} \
     --agree-tos \
     --no-eff-email \
-    --force-renewal" certbot
+    --force-renewal
+"
 
 log "[6/6] nginx reload"
 docker exec tripfit-nginx nginx -s reload
