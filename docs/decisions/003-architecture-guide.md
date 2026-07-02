@@ -1,7 +1,7 @@
 # 003 — 도메인 기반 레이어드 아키텍처 가이드
 
 - **상태:** 확정
-- **날짜:** 2026-07-06 (2026-07-07 구조 통일, **2026-07-13** `user/schedule` feature 패키지)
+- **날짜:** 2026-07-06 (2026-07-07 구조 통일, **2026-07-13** `user/schedule` feature 패키지, **2026-07-20** auth 기술축·trip projection·TripService 분리)
 - **관련:** `docs/architecture.md`, `.cursor/rules/spring-boot-java.mdc`
 
 ## 맥락
@@ -15,8 +15,11 @@ TripFit 백엔드는 MVP 단계의 Spring Boot 단일 Gradle 모듈이다. **풀
 3. **도메인 내부 레이어** — `controller` → `dto` → `service` → `domain` → `repository` (+ 필요 시 `client`, `config`, `exception`).
 4. **feature 하위 패키지 (선택)** — 도메인 안 기능이 커지면 `{domain}/{feature}/`에 **동일 레이어 세트**를 둘 수 있다 (예: `user/schedule/`). 최상위 도메인으로 승격하지 않는다.
 5. **공통 코드** — `common/` (설정, 예외, 공유 API envelope, 베이스 엔티티).
-6. **외부 연동** — OAuth·HTTP 검증 등은 `{domain}/client/`에 격리. service가 orchestration만 담당.
+6. **외부 연동** — OAuth·HTTP 검증 등은 `auth/oauth/`에 격리 (구 `auth/client/`). service가 orchestration만 담당.
 7. **API 계약** — Controller는 DTO만 노출. Entity를 HTTP 응답으로 직접 반환하지 않음.
+8. **auth 기술축 (예외)** — API 레이어(`controller`, `dto`, `service`, …)는 유지하고, 인프라는 `auth/jwt/`, `auth/oauth/`, `auth/security/`로 분리.
+9. **trip read projection** — Spring Data projection interface는 `trip/repository/projection/` (JpaRepository와 colocation).
+10. **trip service 분리** — Layered 유지. `TripService` facade + `TripCommandService` / `TripQueryService` / `TripMemberQueryService` + package-private `TripServiceSupport`.
 
 ## 도메인 구조
 
@@ -26,12 +29,33 @@ com.tripfit.tripfit.{domain}/
 ├── dto/              # 요청·응답 (controller/dto/ 중첩 금지)
 ├── service/          # @Transactional 유스케이스
 ├── domain/           # JPA @Entity, enum
-├── repository/       # JpaRepository
-├── client/           # 외부 API adapter (auth 등, 선택)
+├── repository/       # JpaRepository (+ projection/ 선택)
+├── client/           # 외부 API adapter (auth 제외·선택)
 ├── exception/        # 도메인 ErrorCode (auth 등, 선택)
-├── config/           # 도메인 전용 설정 (auth 등, 선택)
+├── config/           # 도메인 전용 설정 (trip 등, 선택)
 └── {feature}/        # 선택: 기능 단위 하위 패키지 (동일 레이어 세트)
     ├── controller|dto|service|domain|repository|exception
+```
+
+**auth 예외 (기술축):**
+
+```
+auth/
+├── controller/ | dto/ | service/ | domain/ | repository/ | exception/
+├── jwt/          # JwtService, Filter, AuthorizedUser, JwtProperties
+├── oauth/        # SocialTokenVerifier*, OAuthProperties
+└── security/     # SecurityConfig, AppConfig
+```
+
+**trip 예시:**
+
+```
+trip/
+├── service/      # TripService(facade), TripCommandService, TripQueryService, …
+├── repository/
+│   ├── TripRepository, TripMemberRepository, …
+│   └── projection/   # TripMemberCountProjection 등 native query projection
+└── …
 ```
 
 예: `user/schedule/` — 정기·개인 일정. 프로필·온보딩은 `user/` 루트 레이어. ErrorCode는 feature별 `ScheduleErrorCode`.
@@ -45,7 +69,9 @@ com.tripfit.tripfit.{domain}/
 | 유스케이스 | `{domain}/service/` 또는 `{domain}/{feature}/service/` | `AuthService`, `ScheduleService` |
 | Entity·enum | `{domain}/domain/` 또는 `{domain}/{feature}/domain/` | `User`, `RegularSchedule` |
 | DB 접근 | `{domain}/repository/` 또는 `{domain}/{feature}/repository/` | `UserRepository`, `RegularScheduleRepository` |
-| 외부 OAuth·HTTP | `{domain}/client/` | `GoogleTokenVerifier`, `SocialTokenVerifierRegistry` |
+| Native query projection | `{domain}/repository/projection/` | `TripMemberCountProjection` |
+| 외부 OAuth·HTTP | `auth/oauth/` (auth) 또는 `{domain}/client/` | `GoogleTokenVerifier`, `SocialTokenVerifierRegistry` |
+| JWT·Security | `auth/jwt/`, `auth/security/` | `JwtService`, `SecurityConfig` |
 | ErrorCode | `{domain}/exception/` 또는 `{domain}/{feature}/exception/` | `UserErrorCode`, `ScheduleErrorCode` |
 | 공통 베이스 | `common/domain/` | `BaseTimeEntity`, `SoftDeleteEntity` |
 
@@ -57,8 +83,8 @@ com.tripfit.tripfit.{domain}/
 | **dto** | API 입출력 타입 | JPA Entity, 외부 API 호출 |
 | **service** | 유스케이스 조율, 트랜잭션, repository·client 호출 | HTTP·Servlet API 직접 사용 |
 | **domain** | JPA Entity, enum | DTO, 외부 API 호출 |
-| **repository** | JpaRepository | Controller, Entity 정의 |
-| **client** | 외부 provider 토큰 검증·HTTP | 유스케이스 orchestration |
+| **repository** | JpaRepository (+ `{domain}/repository/projection/` for read projection) | Controller, Entity 정의 |
+| **client / oauth** | 외부 provider 토큰 검증·HTTP (`auth/oauth/`) | 유스케이스 orchestration |
 
 BR-* 규칙은 service 또는 domain 중 읽기 쉬운 곳에 둔다.
 
@@ -73,6 +99,8 @@ BR-* 규칙은 service 또는 domain 중 읽기 쉬운 곳에 둔다.
 
 - [x] 도메인 기반 레이어드 구조 적용
 - [x] `RefreshToken` → `auth/domain/`
-- [x] 소셜 verifier → `auth/client/`
+- [x] 소셜 verifier → `auth/oauth/` (구 `auth/client/`)
+- [x] auth 기술축 `jwt/` · `oauth/` · `security/`
+- [x] `trip/repository/projection/` + TripService 역할별 분리 (facade 유지)
 - [x] `user/schedule/` feature 패키지 + `ScheduleErrorCode`
 - [ ] API envelope 프론트 합의 후 `common/api` 확정

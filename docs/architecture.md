@@ -21,13 +21,14 @@ com.tripfit.tripfit
 │   ├── domain/                     # BaseTimeEntity, SoftDeleteEntity
 │   └── exception/                  # ErrorCode, CommonErrorCode, TripFitException, GlobalExceptionHandler
 ├── auth/
-│   ├── config/                     # JwtProperties, OAuthProperties, SecurityConfig
 │   ├── controller/                 # AuthController
 │   ├── dto/                        # LoginRequest, LoginResponse, ...
-│   ├── service/                    # AuthService, JwtService, RefreshTokenService
+│   ├── service/                    # AuthService, RefreshTokenService
 │   ├── domain/                     # RefreshToken
 │   ├── repository/                 # RefreshTokenRepository
-│   ├── client/                     # SocialTokenVerifier*, OAuthProfile, TokenRevocationChecker
+│   ├── jwt/                        # JwtService, Filter, AuthorizedUser, JwtProperties
+│   ├── oauth/                      # SocialTokenVerifier*, OAuthProperties
+│   ├── security/                   # SecurityConfig, AppConfig
 │   └── exception/                  # AuthErrorCode
 ├── user/
 │   ├── controller|dto|service|domain|repository|exception   # 프로필·온보딩
@@ -35,8 +36,11 @@ com.tripfit.tripfit
 │       ├── controller|dto|service|domain|repository
 │       └── exception/              # ScheduleErrorCode
 └── trip/
-    ├── controller|dto|domain|repository|exception
-    └── …
+    ├── controller|dto|domain|exception|config
+    ├── service/                    # TripService(facade), TripCommandService, TripQueryService, …
+    └── repository/
+        ├── TripRepository, TripMemberRepository, …
+        └── projection/             # TripMemberCountProjection 등
 ```
 
 새 기능 추가 시 `com.tripfit.tripfit.{domain}/` 레이어 규칙을 따른다. 도메인 안 기능이 커지면 `{domain}/{feature}/`에 동일 레이어를 둘 수 있다 (`user/schedule`). 상세: [`decisions/003-architecture-guide.md`](decisions/003-architecture-guide.md).
