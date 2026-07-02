@@ -12,7 +12,8 @@ strip_old_labels() {
     --remove-label "type: feature" 2>/dev/null || true
   gh issue edit "$n" \
     --remove-label "priority: P0" --remove-label "priority: P1" \
-    --remove-label "priority: P2" --remove-label "priority: out" 2>/dev/null || true
+    --remove-label "priority: P2" --remove-label "priority: out" \
+    --remove-label "priority: nice" 2>/dev/null || true
   gh issue edit "$n" \
     --remove-label "size: S" --remove-label "size: M" --remove-label "size: T" 2>/dev/null || true
 }

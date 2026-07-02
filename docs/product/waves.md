@@ -49,7 +49,8 @@
 | **Backlog Issue** | Wave당 1 — Must/Nice/Out SSOT ([`development-wave.md` §5](development-wave.md#5-github-운영-방식)) |
 | **`wave:N`** | Milestone과 1:1 |
 | **`kind:` / `area:`** | feature/bug/docs · api/domain/… |
-| **`priority: nice`** | Wave DoD **불필요** — Must 완료 후 (#19 · #20 · #26 · #27) |
+
+**Nice 구분:** 라벨 없음 — Backlog [#30](https://github.com/Central-MakeUs/TripFit-server/issues/30) Nice 섹션 + Issue **비고** `분류: Wave 2 Nice` (#19 · #20 · #26 · #27). Must(#13) 완료 전 착수 금지.
 
 ### Wave Backlog Issue (GitHub)
 

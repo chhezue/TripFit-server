@@ -98,7 +98,8 @@ main  ←  {type}/{issue-number}-{description}
 | `kind:` | feature, bug, chore, docs | 이슈 종류 |
 | `area:` | api, domain, deploy, docs, infra | 코드 위치 |
 | `meta:` | blocked, duplicate, wontfix | 상태 |
-| `priority:` | nice | Must 완료 후 · Wave DoD 불필요 |
+
+Nice/Must 구분은 **Wave Backlog Issue** 본문 + 실행 Issue **비고** — `priority:` 라벨은 사용하지 않음.
 
 이슈당 **wave 1개** + kind 1개 + area 1개 권장.
 

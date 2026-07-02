@@ -36,7 +36,7 @@ LEGACY=(
   bug documentation duplicate enhancement feature blocked
   "good first issue" "help wanted" invalid question wontfix
   "type: feature" "type: bug" "type: chore" "type: docs"
-  "priority: P0" "priority: P1" "priority: P2" "priority: out"
+  "priority: P0" "priority: P1" "priority: P2" "priority: out" "priority: nice"
   "size: S" "size: M" "size: T"
 )
 for label in "${LEGACY[@]}"; do
@@ -63,8 +63,6 @@ create_label "area: infra"   "666666" "DB · 설정 · 인프라"
 create_label "meta: blocked"   "000000" "선행 작업 대기"
 create_label "meta: duplicate" "CFD3D7" "중복 이슈"
 create_label "meta: wontfix"   "FFFFFF" "수정 안 함"
-
-create_label "priority: nice"  "EDEDED" "Must 완료 후 — Wave DoD 불필요"
 
 upsert_milestone() {
   local title="$1"
