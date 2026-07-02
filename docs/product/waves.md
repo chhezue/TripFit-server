@@ -1,55 +1,77 @@
-# TripFit 개발 물결 (wave)
+# TripFit 개발 물결 (wave) — 요약
 
-> **계획·우선순위·단계의 유일한 축.** P0/P1/P2, S/M/T, Phase 1/2, Foundation 등은 사용하지 않는다.
+> **운영·판단·GitHub Backlog 절차 SSOT:** [`development-wave.md`](development-wave.md)  
+> **MVP 범위:** [`mvp.md`](mvp.md)  
+> P0/P1, Phase 1/2, Foundation 등 **다른 축은 사용하지 않음.**
 
-## wave 정의
+## Wave 한 줄 (User Journey)
 
-| wave | 한글 | 범위 | 완료 기준 |
-|------|------|------|-----------|
-| **1** | 기반 | 인증, JWT, API 규약, 예외 처리, 배포, **일정 참여·온보딩·submit 재설계 (#22)** | 로그인 → JWT → 보호 API 호출 가능 · #22 Approved |
-| **2** | 핵심 | 여행방, 참여, 일정 응답, 조건, 추천, 확정 | 방장이 추천 후보 중 하나로 일정 확정 |
-| **3** | 마무리 | 알림, 카카오 공유, 그룹 달력 | MVP 출시 UX 완성 |
-| **4** | 이후 | 계정 연결, RTR+Redis, Apple S2S, 프로필 이미지 S3 미러, 캘린더 연동 등 | — |
+| wave | Milestone (GitHub) | 사용자가 할 수 있는 것 |
+|------|-------------------|------------------------|
+| **1** | Wave 1 — 준비 ** | 로그인하고 TripFit을 **쓸 준비** 완료 · **#22 Approved** |
+| **2** | Wave 2 — 핵심 MVP ** | 여행방 → 일정 수집 → 추천 → **일정 확정** ([`mvp.md`](mvp.md) DoD) |
+| **3** | Wave 3 — 출시 UX ** | 알림·카카오 공유·그룹 달력 — **베타처럼** 사용 |
+| **4** | Wave 4 — 운영·확장 ** | Redis·RTR·S3·계정연결·운영 — **새 MVP 기능 아님** |
 
-**판단:** wave:2를 시작하려면 wave:1이 끝났는가? → 선행이면 wave:1.
+**판단:** Issue 만들기 **전** [`development-wave.md` §4](development-wave.md#4-새-기능--새-이슈--wave-배치-결정-트리) 결정 트리.
 
-## MVP 기능 → wave 매핑
+## Wave DoD (한 줄)
 
-| 기능 (`mvp.md`) | wave |
-|-----------------|------|
-| 사용자 인증·소셜 로그인 | 1 |
-| **일정 참여·온보딩·submit 흐름 (#22)** | **1** |
-| 여행방 생성·옵션·초대·참여·여행지 | 2 |
-| 일정 응답·근무/연차 조건·추천(4모드)·확정 | 2 · **#22 선행** |
-| 그룹 달력 시각화 | 3 |
-| 리마인드 알림·메시지 공유 | 3 |
-| 소셜 계정 연동 (BR-USER-003) | 4 |
-| 알림 상세 설정 | 4 |
-| 정기 리마인드 스케줄러 (BR-NOTI-005) | 4 |
-| 홈 여행방 (진행 중/전체 · Pin · last_activity) | 2 |
-| 여행방 취소·삭제 VOC (`trip.cancel_reason`) | 4 |
-| 프로필 이미지 S3 미러 (B안) | 4 |
+| wave | 완료 조건 |
+|------|-----------|
+| **1** | login → JWT → 온보딩 · **#22 스펙 Approved** · `./gradlew test` |
+| **2** | **MVP 완료 기준** — 방장이 추천 TOP 3로 일정 확정 |
+| **3** | 알림·공유·그룹 달력으로 내부/친구 베타 가능 |
+| **4** | 팀 합의 운영·확장 체크리스트 (Wave 1~3 이후) |
 
-## GitHub
+## MVP 기능 → wave
 
-- **라벨:** `wave:1` ~ `wave:4` (필수 1개)
-- **마일스톤:** `Wave N — {한글}` (wave와 1:1)
-- **보조 라벨:** `kind:` (feature/bug/chore/docs), `area:` (api/domain/…)
+| 기능 | wave | Must? |
+|------|------|-------|
+| 소셜 로그인·JWT·온보딩 | 1 | Must |
+| 일정 참여·submit·sparse (#22) | 1 | **Must (게이트)** |
+| 여행방·참여·홈 D5 | 2 | Must |
+| 일정 CRUD · calendar resolve | 2 | Must |
+| 추천 4모드·확정 | 2 | Must |
+| `last_activity_at` hook · TERMINATED 스케줄러 (#26, #27) | 2 | **Nice** |
+| join 미리보기 · 참여자 내보내기 (#19, #20) | 2 | **Nice / Out** |
+| 그룹 달력 · 알림 · 카카오 공유 | 3 | Must |
+| RTR·Redis · Apple S2S · S3 · 계정 연결 | 4 | — |
+| BR-NOTI-005 · cancel_reason | 4 | — |
 
-## 스펙 메타 (상단 3줄)
+상세 Must/Nice/Out: [`development-wave.md` §3](development-wave.md#3-wave-14-재정의).
+
+## GitHub (요약)
+
+| 객체 | 용도 |
+|------|------|
+| **Milestone** | Wave 컨테이너 |
+| **Backlog Issue** | Wave당 1 — Must/Nice/Out SSOT ([`development-wave.md` §5](development-wave.md#5-github-운영-방식)) |
+| **`wave:N`** | Milestone과 1:1 |
+| **`kind:` / `area:`** | feature/bug/docs · api/domain/… |
+| **`priority: nice`** | Wave DoD **불필요** — Must 완료 후 (#19 · #20 · #26 · #27) |
+
+### Wave Backlog Issue (GitHub)
+
+| wave | Issue | Milestone |
+|------|-------|-----------|
+| 1 | [#29](https://github.com/Central-MakeUs/TripFit-server/issues/29) | Wave 1 — 준비 |
+| 2 | [#30](https://github.com/Central-MakeUs/TripFit-server/issues/30) | Wave 2 — 핵심 MVP |
+| 3 | [#31](https://github.com/Central-MakeUs/TripFit-server/issues/31) | Wave 3 — 출시 UX |
+| 4 | [#32](https://github.com/Central-MakeUs/TripFit-server/issues/32) | Wave 4 — 운영·확장 |
+
+**활성 Wave (2026-07-20):** Wave 1 Must Open = **#22** → 이후 Wave 2 Must = **#13**. Nice(#19, #20, #26, #27)는 Must 완료 전 착수 금지.
+
+## 스펙 메타
 
 ```markdown
 > wave: N
-> implements: BR-xxx (이번에 구현)
-> deferred: BR-yyy (언급만, 범위 밖)
+> implements: BR-xxx
+> deferred: BR-yyy → #이슈
 ```
 
-스펙 파일명에 `mvp`, `phase`, `p2` 접미사 금지.
-
-## 스펙 필요 여부
-
-wave와 무관. DB·인증·3파일+ 변경 시 `docs/specs/` 링크 — PR 체크리스트로 확인.
+스펙 `wave:`는 **Backlog에서 확정한 값**과 일치해야 함.
 
 ## 리뷰 등급 (wave와 무관)
 
-코드리뷰 코멘트: **N1**(필수) ~ **N5**(사소). 구 P1~P5 대체.
+N1(필수) ~ N5(사소) — [`.github/CONTRIBUTING.md`](../../.github/CONTRIBUTING.md)

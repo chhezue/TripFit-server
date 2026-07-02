@@ -2,7 +2,7 @@
 
 Issue · PR · Milestone · CI를 TripFit 하네스(`docs/`, `.cursor/`)와 연결합니다.
 
-계획·우선순위 SSOT: [`docs/product/waves.md`](../docs/product/waves.md)
+계획·우선순위 SSOT: [`docs/product/development-wave.md`](../docs/product/development-wave.md) · 요약: [`waves.md`](../docs/product/waves.md)
 
 ## 브랜치 전략
 
@@ -98,6 +98,7 @@ main  ←  {type}/{issue-number}-{description}
 | `kind:` | feature, bug, chore, docs | 이슈 종류 |
 | `area:` | api, domain, deploy, docs, infra | 코드 위치 |
 | `meta:` | blocked, duplicate, wontfix | 상태 |
+| `priority:` | nice | Must 완료 후 · Wave DoD 불필요 |
 
 이슈당 **wave 1개** + kind 1개 + area 1개 권장.
 
@@ -105,10 +106,10 @@ main  ←  {type}/{issue-number}-{description}
 
 | 마일스톤 | wave |
 |----------|------|
-| Wave 1 — 기반 | 1 |
-| Wave 2 — 핵심 | 2 |
-| Wave 3 — 마무리 | 3 |
-| Wave 4 — 이후 | 4 |
+| Wave 1 — 준비 | 1 |
+| Wave 2 — 핵심 MVP | 2 |
+| Wave 3 — 출시 UX | 3 |
+| Wave 4 — 운영·확장 | 4 |
 
 ## Agent 예시
 

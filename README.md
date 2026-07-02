@@ -34,7 +34,8 @@ AI 에이전트(그리고 신규 합류자)가 **추측하지 않고** 일관되
 
 | 경로 | 용도 |
 |------|------|
-| [`docs/product/waves.md`](docs/product/waves.md) | 계획·우선순위 SSOT (wave 1~4) |
+| [`docs/product/development-wave.md`](docs/product/development-wave.md) | **Wave 운영·판단·Backlog** SSOT |
+| [`docs/product/waves.md`](docs/product/waves.md) | Wave 1~4 요약표 |
 | [`docs/product/`](docs/product) | PRD · MVP · 비즈니스 룰(BR-*) · 용어 · 플로우 |
 | [`docs/specs/`](docs/specs) | 기능 스펙 (구현 전 Approved) |
 | [`docs/architecture.md`](docs/architecture.md) | 레이어·패키지·설정·DB 요약 |

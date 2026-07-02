@@ -28,7 +28,7 @@ alwaysApply: true
 
 ## 작업 분류 (시작 전 30초)
 
-1. **`docs/product/waves.md`** 에서 **wave(1~4)** 확인
+1. **`docs/product/development-wave.md`** 에서 **활성 Wave·Must** 확인 · 요약 **`docs/product/waves.md`**
 2. **GitHub 이슈** — 작업 범위·완료 기준이 있는 이슈 확인 또는 생성 (**브랜치명에 쓸 `#n` 확정**)
 3. DB·인증·3파일+ 변경이면 `specify` 스킬 → `docs/specs/` 작성 → **승인 후** 구현
 4. 그 외는 `AGENTS.md` + 관련 `docs/product/` 확인 후 바로 구현
@@ -39,7 +39,7 @@ alwaysApply: true
 
 ## Before Coding
 
-1. `AGENTS.md` → `docs/architecture.md` → `docs/product/waves.md` → `docs/product/platform.md` → `docs/decisions/002-domain-split-vercel-api.md` → `docs/product/mvp.md`
+1. `AGENTS.md` → `docs/architecture.md` → `docs/product/development-wave.md` → `docs/product/waves.md` → `docs/product/platform.md` → `docs/decisions/002-domain-split-vercel-api.md` → `docs/product/mvp.md`
 2. 스펙 필요 시 Plan 모드 또는 `specify` 스킬 → **사용자 승인 후** 구현
 3. **가정을 명시**하고, 해석이 여러 개면 조용히 고르지 말고 질문. 더 단순한 방법이 있으면 말한다.
 4. 모호한 요구·충돌하는 문서 → **최우선 규칙에 따라 질문 후 진행** (구현 시작 금지)

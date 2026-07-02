@@ -1,24 +1,26 @@
 name: Feature
 description: 새 API, 엔티티, 비즈니스 기능
-title: "[area] "
+title: "[Feat] "
 labels:
   - "kind: feature"
 body:
   - type: markdown
     attributes:
       value: |
-        계획 축: [`docs/product/waves.md`](../../docs/product/waves.md) — **wave 1~4** 중 하나.
+        계획 축: [`docs/product/development-wave.md`](../../docs/product/development-wave.md) · 요약 [`waves.md`](../../docs/product/waves.md)
         DB·인증·다파일 변경 시 merge 전 [`docs/specs/`](../../docs/specs/) 스펙 링크 필요.
+        본문은 아래 섹션 순서를 유지하면 Agent·PR과 연동하기 쉽습니다.
 
   - type: dropdown
     id: wave
     attributes:
       label: wave (개발 물결)
+      description: "판단: Issue 생성 **전** development-wave.md §4 결정 트리 · SSOT → development-wave.md"
       options:
-        - "1 — 기반"
-        - "2 — 핵심"
-        - "3 — 마무리"
-        - "4 — 이후"
+        - "1 — 준비: 로그인하고 TripFit 쓸 준비 (#22 게이트)"
+        - "2 — 핵심 MVP: 여행방 → 일정 → 추천 → 확정"
+        - "3 — 출시 UX: 알림·공유·그룹 달력"
+        - "4 — 운영·확장: Redis·RTR·S3 등 (새 MVP 기능 아님)"
     validations:
       required: true
 
@@ -35,31 +37,75 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: spec
-    attributes:
-      label: 스펙 문서 (해당 시)
-      description: "예: docs/specs/trip-room-create.md"
-      placeholder: docs/specs/...
-
   - type: textarea
-    id: goal
+    id: summary
     attributes:
-      label: 목표 (한 문장)
+      label: 한 줄 요약
+      description: 이슈 목록·알림에서 바로 읽히는 한 문장
       placeholder: 방장이 여행방을 생성하고 초대 코드를 받을 수 있다.
     validations:
       required: true
 
   - type: textarea
+    id: background
+    attributes:
+      label: 배경
+      description: 왜 지금 이 이슈가 생겼는지 — 문제·모순·트리거·분리/defer 사유
+      placeholder: |
+        - D5 구현 중 last_activity_at hook이 create/join만 있어 #26으로 분리
+        - submit·sparse·온보딩 skip이 한 세트로 모순 → wave 1에서 재설계
+    validations:
+      required: true
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: 목표
+      description: 완료 후 달라지는 상태 (한~두 문장)
+      placeholder: REST API로 여행방 생성·참여·홈 Pin까지 제공한다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: related
+    attributes:
+      label: 관련
+      description: 스펙·결정·BR·Figma 등
+      placeholder: |
+        - **Spec:** docs/specs/trip-room-api.md (Approved)
+        - **Decision:** docs/decisions/008-trip-authorization-guard.md
+        - **implements:** BR-TRIP-001, BR-USER-009
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 선행 / blocks / related
+      description: "선행: 시작 전 필요 · blocks: 이 이슈가 막는 이슈 · related: 연관만"
+      placeholder: |
+        - **선행:** #11 · #17 · #22 (submit·참여 완료)
+        - **blocks:** #13 (RESPONDED·sparse)
+        - **related:** #19 · #20
+
+  - type: textarea
     id: requirements
     attributes:
-      label: 요구사항 / 완료 기준
+      label: Must Have (완료 기준)
       placeholder: |
         - [ ] API POST /api/v1/trips
-        - [ ] ./gradlew test 통과
+        - [ ] `./gradlew test`
+    validations:
+      required: true
+
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: 범위 밖
+      placeholder: |
+        - join 미리보기 → #19
+        - 알림 → #21 (wave 3)
 
   - type: textarea
     id: notes
     attributes:
       label: 비고
-      placeholder: 의존 이슈 #번호
+      placeholder: OpenAPI Hidden 유지, 수동 검증 메모 등

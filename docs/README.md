@@ -14,7 +14,8 @@ docs/
 │   ├── api-response.md       ← REST JSON envelope 초안 (프론트 합의 전)
 │   └── ec2-split-deployment.md
 ├── product/
-│   ├── waves.md              ← **계획·우선순위 SSOT** (wave 1~4)
+│   ├── waves.md              ← Wave 1~4 **요약표**
+│   ├── development-wave.md   ← **Wave 운영·판단·GitHub SSOT**
 │   ├── mvp.md                ← MVP In/Out 범위
 │   ├── platform.md           ← React·스토어·API 전제 (Agent)
 │   ├── prd.md                ← 제품 요구 원본
@@ -40,13 +41,14 @@ docs/
 
 ## 읽는 순서 (기능 구현 시)
 
-1. `product/waves.md` — wave 확인
-2. `product/mvp.md` — 범위 확인
-2. `product/platform.md` — 클라이언트(Vercel)·API(`api.tripfit.online`) 전제
-3. `product/prd.md` + `business-rules/` — 상세 요구
-4. `architecture.md` + `architecture/erd.md` + `architecture/api-response.md` — 레이어·스키마·API 계약
-5. `specs/{feature}.md` — 이번 작업 스펙 (`.cursor/skills/specify`로 작성)
-6. 구현 후 `docs/`와 코드 동기화
+1. `product/development-wave.md` — **Wave 운영·판단·Backlog** (활성 Wave·Must 확인)
+2. `product/waves.md` — wave 요약표
+3. `product/mvp.md` — 범위 확인
+4. `product/platform.md` — 클라이언트(Vercel)·API(`api.tripfit.online`) 전제
+5. `product/prd.md` + `business-rules/` — 상세 요구
+6. `architecture.md` + `architecture/erd.md` + `architecture/api-response.md` — 레이어·스키마·API 계약
+7. `specs/{feature}.md` — 이번 작업 스펙 (`.cursor/skills/specify`로 작성)
+8. 구현 후 `docs/`와 코드 동기화
 
 ## 런타임 vs 문서
 

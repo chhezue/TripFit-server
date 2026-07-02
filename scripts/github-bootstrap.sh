@@ -64,6 +64,8 @@ create_label "meta: blocked"   "000000" "선행 작업 대기"
 create_label "meta: duplicate" "CFD3D7" "중복 이슈"
 create_label "meta: wontfix"   "FFFFFF" "수정 안 함"
 
+create_label "priority: nice"  "EDEDED" "Must 완료 후 — Wave DoD 불필요"
+
 upsert_milestone() {
   local title="$1"
   local description="$2"
@@ -110,13 +112,13 @@ for old in \
   close_milestone "$old"
 done
 
-upsert_milestone "Wave 1 — 기반" \
-  "인증·JWT·API 규약·배포. docs/product/waves.md"
-upsert_milestone "Wave 2 — 핵심" \
-  "여행방·참여·일정·조건·추천·확정. docs/product/waves.md"
-upsert_milestone "Wave 3 — 마무리" \
-  "알림·달력·공유. docs/product/waves.md"
-upsert_milestone "Wave 4 — 이후" \
-  "계정연결·RTR·Apple S2S·고도화. docs/product/waves.md"
+upsert_milestone "Wave 1 — 준비" \
+  "인증·JWT·API 규약·배포. docs/product/waves.md · docs/product/development-wave.md"
+upsert_milestone "Wave 2 — 핵심 MVP" \
+  "여행방·참여·일정·조건·추천·확정. docs/product/waves.md · docs/product/development-wave.md"
+upsert_milestone "Wave 3 — 출시 UX" \
+  "알림·달력·공유. docs/product/waves.md · docs/product/development-wave.md"
+upsert_milestone "Wave 4 — 운영·확장" \
+  "계정연결·RTR·Apple S2S·고도화. docs/product/waves.md · docs/product/development-wave.md"
 
 echo "[github-bootstrap] done — run scripts/github-sync-issues.sh to fix open issues"

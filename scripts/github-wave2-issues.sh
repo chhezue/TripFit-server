@@ -10,5 +10,6 @@ fi
 
 REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
 echo "[github-wave2-issues] repo: $REPO"
-echo "Wave 2 issues are tracked in docs/specs/README.md — no auto-create (existing issues #11–#13, #17, #19, #20)."
+echo "Wave 2 issues exist — 라벨·마일스톤 동기화: ./scripts/github-sync-issues.sh"
+echo "Must vs 후속: docs/product/waves.md § wave 2 — 핵심 Must vs 후속"
 echo "Use: gh issue list --label wave:2 --state all"

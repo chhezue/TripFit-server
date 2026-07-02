@@ -7,7 +7,36 @@ body:
   - type: markdown
     attributes:
       value: |
-        재현 단계를 모르면 비워두고 Agent에게 로그·코드 기반으로 채워 달라고 요청해도 됩니다.
+        재현 단계를 모르면 **배경**만 채우고 Agent에게 로그·코드 기반으로 채워 달라고 요청해도 됩니다.
+        wave는 [`docs/product/development-wave.md`](../../docs/product/development-wave.md) 기준 — 회귀 버그면 **관련 PR·스펙**을 배경에 적어 주세요.
+
+  - type: dropdown
+    id: wave
+    attributes:
+      label: wave (개발 물결)
+      description: 우선순위·마일스톤 정렬용. 해당 없으면 가장 가까운 wave.
+      options:
+        - "1 — 준비"
+        - "2 — 핵심 MVP"
+        - "3 — 출시 UX"
+        - "4 — 운영·확장"
+        - "미정"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 영역 (area)
+      options:
+        - api
+        - domain
+        - deploy
+        - infra
+        - docs
+        - other
+    validations:
+      required: true
 
   - type: dropdown
     id: environment
@@ -20,6 +49,23 @@ body:
         - test / CI
     validations:
       required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 한 줄 요약
+      placeholder: Pin 해제 후에도 ongoing 캐러셀 정렬이 갱신되지 않는다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: background
+    attributes:
+      label: 배경
+      description: 언제·어떤 변경 이후 발생했는지, 영향 범위
+      placeholder: |
+        - #12 D5 merge 이후 prod에서 재현
+        - 관련 API: PATCH /api/v1/trips/{id}/pin
 
   - type: textarea
     id: reproduction
@@ -49,15 +95,12 @@ body:
     id: logs
     attributes:
       label: 로그 / 스크린샷
-      description: docker logs, stack trace 등
+      description: docker logs, stack trace, curl 응답 등
 
-  - type: dropdown
-    id: area
+  - type: textarea
+    id: related
     attributes:
-      label: 영역
-      options:
-        - api
-        - domain
-        - deploy
-        - infra
-        - other
+      label: 관련
+      placeholder: |
+        - **Spec:** docs/specs/trip-room-api.md §Pin
+        - **related:** #12 · PR #n
