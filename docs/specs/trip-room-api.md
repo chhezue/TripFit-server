@@ -43,7 +43,7 @@
 | **D6** | 이름 최대 길이 | **15자** | 2026-07-17 |
 | **D7** | join 전 미리보기 | wave 2 Out · [#19](https://github.com/Central-MakeUs/TripFit-server/issues/19) | 2026-07-17 |
 | **D8** | 인원·기간 cap | `memberCount` **1~10** (create/patch) · `joinedMemberCount >= memberCount` → 신규 join 409 · `end_range` 경과(TERMINATED) → 초대·신규 join 불가 | 2026-07-17 |
-| **D9** | 일정·기간·박일 | `duration_days` **nullable**(미정). create/patch: `durationNights`+`durationDays` 쌍 또는 둘 다 null. DB는 **일만** 저장. **희망 기간은 create만·PATCH 불가**. 당일치기(0박1일) `[미정]` | 2026-07-21 |
+| **D9** | 일정·기간·박일 | `duration_days` **nullable**(미정). create/patch: `durationNights`+`durationDays` 쌍 또는 둘 다 null. DB는 **일만** 저장. **희망 기간은 create만·PATCH 불가**. 당일치기(0박1일) `[미정]` → **[#2](https://github.com/Central-MakeUs/TripFit-server/issues/2)** | 2026-07-21 |
 
 ### D5 상세 (홈 목록 — 2026-07-19 확정)
 
@@ -196,7 +196,7 @@
 | `memberCount` | **1~10** 필수 |
 | `destination` | nullable (미정) |
 
-**당일치기(0박 1일) 허용 여부 `[미정]`** — 기획 확인 전. 서버는 관계식만 검증.
+**당일치기(0박 1일) 허용 여부 `[미정]`** — 기획 확인 전. 서버는 관계식만 검증. 트래커: **[#2](https://github.com/Central-MakeUs/TripFit-server/issues/2)**.
 
 ### `PATCH /trips/{tripId}` 요청
 

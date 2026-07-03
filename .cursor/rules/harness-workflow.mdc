@@ -51,6 +51,18 @@ dev · 마이그레이션 없음 → **`docs/architecture/erd.md`·엔티티는 
 3. DB·인증·3파일+ 변경이면 `specify` 스킬 → `docs/specs/` 작성 → **승인 후** 구현
 4. 그 외는 `AGENTS.md` + 관련 `docs/product/` 확인 후 바로 구현
 
+### `[미정]` chore 트래커 — [#2](https://github.com/Central-MakeUs/TripFit-server/issues/2)
+
+기획·스펙·BR에서 **아직 확정하지 않은 `[미정]`** 은 기능 Feat로 쪼개지 말고 **[#2](https://github.com/Central-MakeUs/TripFit-server/issues/2)** (`[Chore] 기획·스펙 [미정] 사항 모음`)에 모은다.
+
+| 할 일 | 규칙 |
+|-------|------|
+| 새 `[미정]` 생김 | 문서(스펙·BR·ERD 등)에 `[미정]` 표기 **+** `#2` 본문 Must 체크리스트에 항목 추가 (`gh issue edit`) |
+| 기획 확정 | 문서 amend → `#2` 해당 항목 `[x]`(+결정·날짜) → 필요 시 **별도 Feat**로 구현 |
+| 브랜치 | `#2`를 `feat/2-...` 구현 타깃으로 **쓰지 않음** (메타 트래커) |
+
+**금지:** `[미정]`을 묻지 않고 임의 확정해 구현·커밋 · `#2`에만 적고 문서 `[미정]`을 빼먹기
+
 **브랜치 네이밍 (필수):** `main`에서 `{type}/{issue-number}-{description}` 분기 — **이슈 번호 생략 금지**. SSOT: [`.github/CONTRIBUTING.md`](../../.github/CONTRIBUTING.md) (`feat/12-trip-room-create` 등).
 
 **스펙 신호:** DB 스키마 변경, 3개 이상 파일, BR-* 영향, 프로필/배포 변경, **인증·푸시·딥링크·결제** 등 클라이언트 연동 API.

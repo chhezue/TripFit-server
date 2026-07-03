@@ -103,6 +103,10 @@ Nice/Must 구분은 **Wave Backlog Issue** 본문 + 실행 Issue **비고** — 
 
 이슈당 **wave 1개** + kind 1개 + area 1개 권장.
 
+### `[미정]` chore 트래커
+
+기획·스펙·BR의 **`[미정]`** 항목은 **[#2](https://github.com/Central-MakeUs/TripFit-server/issues/2)** 에 모은다 (`kind: chore`). 상세: `.cursor/rules/harness-workflow.mdc`.
+
 ### 마일스톤 (= wave)
 
 | 마일스톤 | wave |

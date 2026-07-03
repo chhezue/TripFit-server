@@ -25,7 +25,7 @@
 ### `[미정]`
 
 - BR-TRIP-001: 희망 기간 최대 탐색 범위(예: 6개월)
-- BR-TRIP-001: **당일치기(0박 1일)** 허용 여부 — 기획 확인 전. 서버는 일단 `nights == days - 1` · `days ≥ 1`만 검증 (0박 포함 가능)
+- BR-TRIP-001: **당일치기(0박 1일)** 허용 여부 — 기획 확인 전. 서버는 일단 `nights == days - 1` · `days ≥ 1`만 검증 (0박 포함 가능). 트래커: **[#2](https://github.com/Central-MakeUs/TripFit-server/issues/2)**
 - BR-TRIP-006: `max_vacation_days` 0~10 (default 2); 정기 일정 N행 상한은 `[미정]`
 - BR-TRIP-010: 옵션 변경 시 참여자 알림 — BR-NOTI-003과 연동 (`[미정]` 상세)
 - BR-TRIP-012: 동점 처리 수치
