@@ -88,7 +88,7 @@ erDiagram
         string destination
         date start_range
         date end_range
-        int duration_days
+        int duration_days "nullable — 일정 미정"
         int member_count
         string invite_code
         string status
@@ -229,10 +229,10 @@ User 소유. **날짜당 1행** — 오전/오후/저녁 가능·불가 + 날짜
 | id | char(36) | N | PK | UUID v4 |
 | owner_id | char(36) | N | FK → users.id | 방장 |
 | name | varchar | N | | 최대 **15자** (BR-TRIP-001) |
-| destination | varchar | Y | | 여행지 MVP In |
-| start_range | date | N | | 희망 기간 시작 |
-| end_range | date | N | | 희망 기간 종료 |
-| duration_days | int | N | | **m일만 저장**. n박은 UI 계산 |
+| destination | varchar | Y | | 여행지. null = 「아직 못정했어요」 |
+| start_range | date | N | | 희망 기간 시작. **생성 후 수정 불가** |
+| end_range | date | N | | 희망 기간 종료. **생성 후 수정 불가** |
+| duration_days | int | Y | | **m일만 저장**. null = 일정 미정. n박은 API 파생(`days-1`) · 요청 시 `durationNights`+`durationDays` 검증 |
 | member_count | int | N | | **1~10** (BR-TRIP-001) |
 | invite_code | varchar | N | | UNIQUE |
 | status | varchar | N | | `ONGOING`, `CONFIRMED`, `CANCELED`, **`TERMINATED`** (기간 만료·종료) |
@@ -245,7 +245,7 @@ User 소유. **날짜당 1행** — 오전/오후/저녁 가능·불가 + 날짜
 | updated_at | timestamptz | N | | |
 | deleted_at | timestamptz | Y | | Soft delete |
 
-**제약:** `duration_days` ≤ `end_range - start_range + 1` (BR-TRIP-008)
+**제약:** `duration_days`가 있을 때 `duration_days` ≤ `end_range - start_range + 1` (BR-TRIP-008). **당일치기(0박 1일) 허용 여부 `[미정]`**
 
 ### `trip_member`
 
@@ -350,5 +350,6 @@ User 소유. **날짜당 1행** — 오전/오후/저녁 가능·불가 + 날짜
 3. **2026-07-13:** A안 폐기 → 정기/개별 2테이블, 정기 N행·title·범용 시간 필드
 4. **2026-07-20:** 홈 D5 — `trip.last_activity_at`, `trip_member.pinned_at` ([`trip-room-api.md`](../specs/trip-room-api.md))
 5. **2026-07-21:** `#39` — `trip_member.status` **JOINED|RESPONDED** 부활 (방장 create=`JOINED` → confirm=`RESPONDED`)
+6. **2026-07-21:** `trip.duration_days` **nullable**(일정 미정) · 희망 기간 생성 후 불변 · API n박+m일
 6. **2026-07-21:** ERD 개선 반영 — `users` rename · `responded_at` · active UNIQUE(app) · `score`=#13 유지
 7. 알림 이력 테이블 — ERD 범위 외 (wave 3)

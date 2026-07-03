@@ -83,6 +83,7 @@ class TripControllerTest {
                           "name": "제주 3박4일",
                           "startRange": "2026-08-01",
                           "endRange": "2026-08-10",
+                          "durationNights": 3,
                           "durationDays": 4,
                           "memberCount": 6,
                           "destination": "제주"
@@ -165,6 +166,7 @@ class TripControllerTest {
         LocalDate.of(2026, 8, 1),
         LocalDate.of(2026, 8, 10),
         4,
+        3,
         6,
         TripStatus.ONGOING,
         LocalDateTime.of(2026, 7, 20, 12, 0),
@@ -186,6 +188,7 @@ class TripControllerTest {
         LocalDate.of(2026, 8, 1),
         LocalDate.of(2026, 8, 10),
         4,
+        3,
         6,
         TripStatus.ONGOING,
         "ABC234",

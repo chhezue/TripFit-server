@@ -22,8 +22,16 @@ public record CreateTripRequest(
     @NotNull
     LocalDate endRange,
 
-    @Schema(description = "희망 여행 일수 (m일)", example = "4")
-    @NotNull
+    @Schema(
+        description = "희망 여행 박수 (n박). durationDays와 둘 다 null=미정, 둘 다 값이면 nights==days-1",
+        nullable = true,
+        example = "3")
+    Integer durationNights,
+
+    @Schema(
+        description = "희망 여행 일수 (m일). DB에만 저장. null=미정",
+        nullable = true,
+        example = "4")
     Integer durationDays,
 
     @Schema(description = "참여 인원 (1~10)", example = "6", minimum = "1", maximum = "10")
@@ -32,7 +40,7 @@ public record CreateTripRequest(
     @Max(10)
     Integer memberCount,
 
-    @Schema(description = "여행지 (선택)", nullable = true, example = "제주")
+    @Schema(description = "여행지 (선택·null=미정)", nullable = true, example = "제주")
     String destination
 ) {
 }

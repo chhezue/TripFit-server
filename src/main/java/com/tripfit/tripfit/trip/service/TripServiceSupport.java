@@ -72,6 +72,7 @@ class TripServiceSupport {
         trip.getStartRange(),
         trip.getEndRange(),
         trip.getDurationDays(),
+        durationNights(trip.getDurationDays()),
         trip.getMemberCount(),
         effectiveStatus(trip),
         trip.getLastActivityAt(),
@@ -102,6 +103,7 @@ class TripServiceSupport {
         trip.getStartRange(),
         trip.getEndRange(),
         trip.getDurationDays(),
+        durationNights(trip.getDurationDays()),
         trip.getMemberCount(),
         effectiveStatus(trip),
         trip.getInviteCode(),
@@ -183,11 +185,13 @@ class TripServiceSupport {
     return trip.getStatus();
   }
 
-  // 1. 이름 길이 2. 기간·인원 범위 3. durationDays ≤ inclusive 일수
+  // 1. 이름 길이 2. 기간·인원 3. 박/일 쌍(둘 다 null=미정) 4. days ≤ range (있을 때)
+  // 당일치기(0박1일) 허용 여부 [미정] — 관계식 nights==days-1 · days≥1 만 검증
   void validateTripMeta(
       String name,
       LocalDate startRange,
       LocalDate endRange,
+      Integer durationNights,
       Integer durationDays,
       Integer memberCount) {
     if (name == null || name.isBlank() || name.trim().length() > NAME_MAX_LENGTH) {
@@ -196,17 +200,36 @@ class TripServiceSupport {
     if (startRange == null
         || endRange == null
         || endRange.isBefore(startRange)
-        || durationDays == null
-        || durationDays < 1
         || memberCount == null
         || memberCount < MEMBER_COUNT_MIN
         || memberCount > MEMBER_COUNT_MAX) {
       throw new TripFitException(CommonErrorCode.INVALID_INPUT);
     }
-    long rangeDays = ChronoUnit.DAYS.between(startRange, endRange) + 1;
-    if (durationDays > rangeDays) {
+    Integer resolvedDays = resolveDurationDays(durationNights, durationDays);
+    if (resolvedDays != null) {
+      long rangeDays = ChronoUnit.DAYS.between(startRange, endRange) + 1;
+      if (resolvedDays > rangeDays) {
+        throw new TripFitException(CommonErrorCode.INVALID_INPUT);
+      }
+    }
+  }
+
+  // 둘 다 null → null(미정). 둘 다 값 + nights==days-1 → days. 한쪽만·관계 불일치 → 400
+  static Integer resolveDurationDays(Integer durationNights, Integer durationDays) {
+    if (durationNights == null && durationDays == null) {
+      return null;
+    }
+    if (durationNights == null
+        || durationDays == null
+        || durationDays < 1
+        || durationNights != durationDays - 1) {
       throw new TripFitException(CommonErrorCode.INVALID_INPUT);
     }
+    return durationDays;
+  }
+
+  static Integer durationNights(Integer durationDays) {
+    return durationDays == null ? null : durationDays - 1;
   }
 
   // UNIQUE 충돌 재시도 — 한도 초과 시 INTERNAL_ERROR (클라이언트 재시도 유도)

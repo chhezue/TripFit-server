@@ -64,8 +64,11 @@ public class Trip extends SoftDeleteEntity {
   @Column(nullable = false)
   private LocalDate endRange;
 
-  @Schema(description = "희망 여행 일수 (m일)", example = "4")
-  @Column(nullable = false)
+  @Schema(
+      description = "희망 여행 일수 (m일). null=아직 못정했어요. n박은 days-1 파생",
+      nullable = true,
+      example = "4")
+  @Column
   private Integer durationDays;
 
   @Schema(description = "참여 인원 (1~10)", example = "6", minimum = "1", maximum = "10")

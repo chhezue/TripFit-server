@@ -43,6 +43,7 @@
 | **D6** | 이름 최대 길이 | **15자** | 2026-07-17 |
 | **D7** | join 전 미리보기 | wave 2 Out · [#19](https://github.com/Central-MakeUs/TripFit-server/issues/19) | 2026-07-17 |
 | **D8** | 인원·기간 cap | `memberCount` **1~10** (create/patch) · `joinedMemberCount >= memberCount` → 신규 join 409 · `end_range` 경과(TERMINATED) → 초대·신규 join 불가 | 2026-07-17 |
+| **D9** | 일정·기간·박일 | `duration_days` **nullable**(미정). create/patch: `durationNights`+`durationDays` 쌍 또는 둘 다 null. DB는 **일만** 저장. **희망 기간은 create만·PATCH 불가**. 당일치기(0박1일) `[미정]` | 2026-07-21 |
 
 ### D5 상세 (홈 목록 — 2026-07-19 확정)
 
@@ -91,8 +92,9 @@
 - [ ] `trip.last_activity_at` 컬럼 + create/join/patch/confirm **최소** 갱신 (D5) — 전체 hook → **#26**
 - [ ] `trip_member.pinned_at` 컬럼 · Pin ON/OFF 시 설정/해제 (D5)
 - [ ] `GET /api/v1/trips/{tripId}` — 상세 **`TripDetailResponse`** (RESPONDED 참여자만 · `membersPreview` 없음)
-- [ ] `PATCH /api/v1/trips/{tripId}` — 방장만 (JOINED 허용) · **`status=ONGOING`만** (D4) · `last_activity_at` 갱신 (최소)
-- [ ] `durationDays` ≤ 기간 일수 검증 (BR-TRIP-008)
+- [ ] `PATCH /api/v1/trips/{tripId}` — 방장만 (JOINED 허용) · **`status=ONGOING`만** (D4) · **기간 필드 없음**(D9) · `last_activity_at` 갱신 (최소)
+- [ ] 일정: `durationNights`+`durationDays` 쌍 검증 · null=미정 · DB `duration_days`만 (D9 · BR-TRIP-001)
+- [ ] `durationDays` 있을 때 ≤ 기간 일수 검증 (BR-TRIP-008)
 - [ ] `POST /api/v1/trips/join` — `{ inviteCode }` → MEMBER + **`RESPONDED`** (이미 RESPONDED 시 idempotent — BR-USER-010) · `last_activity_at` 갱신
 - [ ] join 거부: CONFIRMED/CANCELED/TERMINATED **신규** → 409; 인원 가득 → 409 (D4·D8)
 - [ ] `GET /api/v1/trips/{tripId}/members` — status·role·pinned·응답률 + 동명이인 `홍길동(2)` (BR-USER-009)
@@ -179,13 +181,37 @@
   "name": "제주 3박4일",
   "startRange": "2026-08-01",
   "endRange": "2026-08-10",
+  "durationNights": 3,
   "durationDays": 4,
   "memberCount": 6,
   "destination": "제주"
 }
 ```
 
-`destination` nullable (BR-TRIP-001 선택 입력). `name` 최대 **15자**.
+| 필드 | 규칙 |
+|------|------|
+| `name` | 최대 **15자** |
+| `startRange` / `endRange` | **필수** (생성 시에만 설정) |
+| `durationNights` / `durationDays` | **둘 다 null** = 일정 미정. **둘 다 값** = 확정 (`nights == days - 1`, `days ≥ 1`, `days` ≤ 기간 일수). 한쪽만 → 400 |
+| `memberCount` | **1~10** 필수 |
+| `destination` | nullable (미정) |
+
+**당일치기(0박 1일) 허용 여부 `[미정]`** — 기획 확인 전. 서버는 관계식만 검증.
+
+### `PATCH /trips/{tripId}` 요청
+
+```json
+{
+  "name": "제주 3박4일",
+  "durationNights": 3,
+  "durationDays": 4,
+  "memberCount": 6,
+  "destination": "제주"
+}
+```
+
+- **`startRange` / `endRange` 없음** — 희망 기간 수정 불가 (BR-TRIP-009 · D9)
+- 일정·여행지 미정은 create와 동일(null 쌍 / destination null)
 
 ### `POST /trips` 응답
 
@@ -211,6 +237,7 @@
   "startRange": "2026-08-01",
   "endRange": "2026-08-10",
   "durationDays": 4,
+  "durationNights": 3,
   "memberCount": 6,
   "status": "ONGOING",
   "confirmedStartDate": null,
@@ -250,6 +277,7 @@
   "startRange": "2026-08-01",
   "endRange": "2026-08-10",
   "durationDays": 4,
+  "durationNights": 3,
   "memberCount": 6,
   "status": "ONGOING",
   "inviteCode": "A2B3C4",
@@ -350,16 +378,16 @@ trip `startRange`~`endRange` 기간 (현행). 멤버 **전원** × effective day
 
 | BR | 적용 내용 | 구현 위치 (예정) |
 |----|-----------|------------------|
-| BR-TRIP-001 | 필수 필드 · 이름 ≤15자 · 인원 1~10 | create/patch 검증 |
-| BR-TRIP-008 | duration ≤ range | create/patch |
-| BR-TRIP-009 | 방장만 PATCH · ONGOING만 | service |
+| BR-TRIP-001 | 필수 필드 · 이름 ≤15자 · 인원 1~10 · 일정/여행지 미정 허용 · n박 m일 → 일만 저장 | create/patch 검증 |
+| BR-TRIP-008 | duration ≤ range (있을 때만) | create/patch |
+| BR-TRIP-009 | 방장만 PATCH · ONGOING만 · **기간 수정 불가** | service |
 | BR-TRIP-013 | 방장 DELETE soft | TripService |
 | BR-USER-006 · BR-USER-007 | 입장·참여 (`is_all_free` · create/join `RESPONDED`) | **[#22](https://github.com/Central-MakeUs/TripFit-server/issues/22)** |
 | BR-USER-010 | 재join idempotent | join service |
 
 ### PATCH trip 시 BR-TRIP-010
 
-희망 기간·`durationDays` 변경 시 **`recommendation` hard DELETE** — hook 지점 주석/호출 (#13).
+**`durationDays` 변경** 시 **`recommendation` hard DELETE** — hook 지점 주석/호출 (#13). (기간은 불변 → PATCH 트리거 없음)
 
 ### ~~`personal-summary`~~ (삭제)
 
@@ -415,6 +443,7 @@ trip `startRange`~`endRange` 기간 (현행). 멤버 **전원** × effective day
 | 2026-07-21 | **#39** — D1 amend: create=`JOINED` · `schedule/confirm` · RESPONDED 게이트 |
 | 2026-07-21 | schedule-calendar OpenAPI 공개 · personal-summary 삭제 · D2 갱신 |
 | 2026-07-21 | **#22 정합** — submit/`JOINED`/`[미정]` stale 정리 · D1·D2·에러코드 · `RESPONDED` 예시 |
+| 2026-07-21 | **D9** — `duration_days` nullable · API n박+m일 · PATCH 기간 잠금 · 당일치기 `[미정]` |
 | 2026-07-08 | 초안 |
 | 2026-07-13 | 일정 용어 #11 정합 |
 | 2026-07-17 | 정책서 반영 |

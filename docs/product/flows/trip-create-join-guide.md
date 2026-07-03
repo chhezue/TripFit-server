@@ -61,7 +61,7 @@ TripFit에서 “방에 들어간다”는 것은 **로그인 + 이름 완료** 
 
 | 단계 | 하는 일 |
 |------|---------|
-| 생성 폼 | 이름 ≤15자, 기간, `durationDays` ≤ 기간 일수, 인원 **1~10**, destination 선택 |
+| 생성 폼 | 이름 ≤15자, 기간(생성 후 불변), `durationNights`+`durationDays`(또는 미정), 인원 **1~10**, destination 선택 |
 | `POST /trips` | `trip`(`ONGOING`) + owner **`JOINED`** + 6자 `inviteCode` + `last_activity_at` 초기화. **아직 방 안 입장 아님** |
 | 정기→개별 | **이 방용 확인 플로우**. 전역 일정이 있어도 **매번** 노출 |
 | 수정 | 정기 CRUD / 개별 bulk upsert — User 전역 |

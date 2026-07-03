@@ -75,8 +75,11 @@ class TripCommandService {
         request.name(),
         request.startRange(),
         request.endRange(),
+        request.durationNights(),
         request.durationDays(),
         request.memberCount());
+    Integer durationDays =
+        TripServiceSupport.resolveDurationDays(request.durationNights(), request.durationDays());
 
     Trip trip =
         new Trip(
@@ -84,7 +87,7 @@ class TripCommandService {
             request.name().trim(),
             request.startRange(),
             request.endRange(),
-            request.durationDays(),
+            durationDays,
             request.memberCount(),
             support.generateUniqueInviteCode(),
             TripStatus.ONGOING);
@@ -141,20 +144,19 @@ class TripCommandService {
 
     support.validateTripMeta(
         request.name(),
-        request.startRange(),
-        request.endRange(),
+        trip.getStartRange(),
+        trip.getEndRange(),
+        request.durationNights(),
         request.durationDays(),
         request.memberCount());
+    Integer durationDays =
+        TripServiceSupport.resolveDurationDays(request.durationNights(), request.durationDays());
 
     boolean recommendationInputsChanged =
-        !Objects.equals(trip.getStartRange(), request.startRange())
-            || !Objects.equals(trip.getEndRange(), request.endRange())
-            || !Objects.equals(trip.getDurationDays(), request.durationDays());
+        !Objects.equals(trip.getDurationDays(), durationDays);
 
     trip.setName(request.name().trim());
-    trip.setStartRange(request.startRange());
-    trip.setEndRange(request.endRange());
-    trip.setDurationDays(request.durationDays());
+    trip.setDurationDays(durationDays);
     trip.setMemberCount(request.memberCount());
     trip.setDestination(TripServiceSupport.normalizeDestination(request.destination()));
 

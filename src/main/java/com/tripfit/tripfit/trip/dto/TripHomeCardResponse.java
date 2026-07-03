@@ -22,7 +22,13 @@ public record TripHomeCardResponse(
 
     @Schema(description = "희망 여행 기간 종료일") LocalDate endRange,
 
-    @Schema(description = "희망 여행 일수") Integer durationDays,
+    @Schema(description = "희망 여행 일수 (m일). null=미정", nullable = true) Integer durationDays,
+
+    @Schema(
+        description = "희망 여행 박수 (n박). durationDays-1 파생. null=미정",
+        nullable = true,
+        example = "3")
+    Integer durationNights,
 
     @Schema(description = "참여 인원 (1~10)", example = "6", minimum = "1", maximum = "10")
     Integer memberCount,

@@ -143,7 +143,7 @@
 | 이벤트 | 동작 |
 |--------|------|
 | POST recommendations (mode 변경) | DELETE all + INSERT 3 |
-| PATCH trip start/end/duration | DELETE all, `lastRecommendationMode=null` `[제안]` |
+| PATCH trip **duration** | DELETE all, `lastRecommendationMode=null` `[제안]` (기간은 create 후 불변) |
 | DELETE trip | DELETE all |
 | confirm / cancel | recommendation 유지 `[제안]` (확정 후 조회용) |
 
@@ -153,7 +153,7 @@
 
 ### 공통
 
-1. 후보: `startRange`~`endRange`에서 길이=`durationDays`인 모든 `[startDate, endDate]`
+1. 후보: `durationDays` **필수**(null이면 추천 불가). `startRange`~`endRange`에서 길이=`durationDays`인 모든 `[startDate, endDate]`
 2. 각 후보·각 멤버·각 슬롯: **#17 resolve** effective 집계 (S1·R2=A)
 3. TBD: `personal_schedule.uncertain=true`인 날짜 (CERTAIN 모드)
 4. 정기 일정 연차: `maxVacationDays`·`VacationApplyPeriod`·반차·공휴일 휴무 필드 참고 (BR-TRIP-006). 필요일 추정 `[제안]` — workday IMPOSSIBLE → +1 (복수 행 집계 `[미정]`)

@@ -86,6 +86,7 @@ class TripActivityAspectTest {
         LocalDate.of(2026, 8, 1),
         LocalDate.of(2026, 8, 10),
         4,
+        3,
         6,
         TripStatus.ONGOING,
         "ABC123",
