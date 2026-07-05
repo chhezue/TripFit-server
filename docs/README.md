@@ -14,6 +14,7 @@ docs/
 │   ├── api-response.md       ← REST JSON envelope 초안 (프론트 합의 전)
 │   └── ec2-split-deployment.md
 ├── product/
+│   ├── waves.md              ← **계획·우선순위 SSOT** (wave 1~4)
 │   ├── mvp.md                ← MVP In/Out 범위
 │   ├── platform.md           ← React·스토어·API 전제 (Agent)
 │   ├── prd.md                ← 제품 요구 원본
@@ -22,16 +23,17 @@ docs/
 │   ├── business-rules/       ← BR-* 규칙
 │   └── flows/                ← 사용자 플로우
 ├── specs/                    ← 기능 스펙 (implement 전)
-│   ├── auth-social-login-mvp.md           ← Phase 1 소셜 로그인·JWT
-│   ├── auth-token-lifecycle-p2.md         ← P2 RTR + Redis (Draft)
+│   ├── auth-social-login.md              ← wave 1 소셜 로그인·JWT
+│   ├── auth-token-rotation.md            ← wave 4 RTR + Redis (Draft)
 │   └── auth-apple-server-notifications.md  ← Apple S2S webhook (스토어 제출 전)
-├── decisions/                ← 인프라·도메인 확정 (001 auth, 004 token lifecycle, …)
+├── decisions/                ← 인프라·아키텍처 확정 (003 architecture guide, 004 token lifecycle, …)
 └── prompts/notebooklm/       ← 기획 문서 재생성 프롬프트
 ```
 
 ## 읽는 순서 (기능 구현 시)
 
-1. `product/mvp.md` — 범위 확인
+1. `product/waves.md` — wave 확인
+2. `product/mvp.md` — 범위 확인
 2. `product/platform.md` — 클라이언트(Vercel)·API(`api.tripfit.online`) 전제
 3. `product/prd.md` + `business-rules/` — 상세 요구
 4. `architecture.md` + `architecture/erd.md` + `architecture/api-response.md` — 레이어·스키마·API 계약

@@ -1,6 +1,6 @@
 ---
 description: React 앱·스토어 런칭 맥락 — API·인증·클라이언트 계약
-globs: **/controller/**,**/dto/**,**/config/**,docs/specs/**
+globs: **/controller/**,**/service/**,**/config/**,docs/specs/**
 alwaysApply: false
 ---
 
@@ -24,9 +24,9 @@ alwaysApply: false
 
 | 기능 | 규칙 |
 |------|------|
-| 소셜 로그인 | 모바일 OAuth·딥링크 고려 — S 유형 스펙 필수 |
+| 소셜 로그인 | 모바일 OAuth·딥링크 고려 — `docs/specs/` 스펙 필수 |
 | 초대 링크 | PRD·플로우 따름. Universal/App Link는 `[미정]`이면 추측 구현 금지 |
-| 푸시 (FCM/APNs) | MVP P1 — **스펙 없으면** 엔티티·발송 API 추가 금지 |
+| 푸시 (FCM/APNs) | wave 3 — **스펙 없으면** 엔티티·발송 API 추가 금지 |
 | 결제·수익화 | `mvp.md` Out — 명시 없으면 구현 금지 |
 
 ## CORS · 보안

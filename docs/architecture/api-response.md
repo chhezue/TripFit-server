@@ -165,17 +165,18 @@ switch (body.code) {
 
 ```
 com.tripfit.tripfit
-├── dto/
-│   ├── common/
+├── common/
+│   ├── api/
 │   │   ├── ApiResponse.java       # data, message, code (status 필드 없음)
 │   │   ├── FieldError.java        # field, message
 │   │   ├── PageResponse.java      # items + pageInfo (목록용)
-│   │   └── PageInfo.java
-│   └── ...
-├── exception/
-│   ├── ErrorCode.java
-│   ├── TripFitException.java
-│   └── GlobalExceptionHandler.java
+│   │   ├── PageInfo.java
+│   │   └── ErrorResponse.java     # (현재 구현)
+│   └── exception/
+│       ├── ErrorCode.java
+│       ├── TripFitException.java
+│       └── GlobalExceptionHandler.java
+└── {feature}/controller/dto/    # 슬라이스별 요청·응답 DTO
 ```
 
 - HTTP status는 **ResponseEntity / @ResponseStatus** 로만 설정 — Body에 duplicate 하지 않음

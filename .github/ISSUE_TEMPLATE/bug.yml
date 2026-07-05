@@ -2,7 +2,7 @@ name: Bug
 description: 버그·오동작 보고
 title: "[bug] "
 labels:
-  - "type: bug"
+  - "kind: bug"
 body:
   - type: markdown
     attributes:

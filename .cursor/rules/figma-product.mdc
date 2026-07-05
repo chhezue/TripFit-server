@@ -10,8 +10,9 @@ API 계약·CORS·인증·DTO는 **`client-platform.mdc`** 참고.
 
 API·도메인 작업 전 **순서대로** 확인:
 
-1. `docs/product/mvp.md` — 이번 작업이 MVP 범위인지
-2. `docs/product/platform.md` — React 앱·스토어 목표, API/인증 전제
+1. `docs/product/waves.md` — 이번 작업 wave(1~4)
+2. `docs/product/mvp.md` — MVP 범위인지
+3. `docs/product/platform.md` — React 앱·스토어 목표, API/인증 전제
 3. `docs/product/design/figma-wireframe-v1.md` — 화면 맵, 상태, 리소스 초안
 4. `docs/product/glossary.md` — 용어 (여행방, 방장, 응답률 등)
 5. `docs/product/business-rules/` — BR-* 규칙

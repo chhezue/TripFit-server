@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# GitHub labels + milestones 일괄 생성 (1회 실행)
+# GitHub labels + milestones — wave 체계 (재실행 가능)
 # Requires: gh auth login
 set -euo pipefail
 
@@ -20,40 +20,62 @@ create_label() {
   local name="$1"
   local color="$2"
   local description="${3:-}"
-  if gh label create "$name" --color "$color" --description "$description" --force 2>/dev/null; then
-    echo "  label: $name"
+  gh label create "$name" --color "$color" --description "$description" --force >/dev/null
+  echo "  label: $name"
+}
+
+delete_label() {
+  local name="$1"
+  if gh label delete "$name" --yes 2>/dev/null; then
+    echo "  deleted: $name"
   fi
 }
 
-echo "[github-bootstrap] labels..."
-# type
-create_label "type: feature" "0E8A16" "새 기능·API"
-create_label "type: bug" "D73A4A" "버그"
-create_label "type: chore" "FBCA04" "CI, docs, 리팩터"
-create_label "type: docs" "0075CA" "문서만"
-# area
-create_label "area: api" "1D76DB" "REST API / controller"
-create_label "area: domain" "5319E7" "엔티티·도메인 규칙"
-create_label "area: deploy" "B60205" "Docker, EC2, CI"
-create_label "area: docs" "0E8A16" "docs/ 기획·아키텍처"
-create_label "area: infra" "666666" "인프라·설정"
-# priority (mvp.md)
-create_label "priority: P0" "B60205" "MVP 필수"
-create_label "priority: P1" "D93F0B" "MVP 중요"
-create_label "priority: P2" "FEF2C0" "MVP 이후 가능"
-# size (harness-workflow S/M/T)
-create_label "size: S" "C2E0C6" "스펙 필요 — 큰 변경"
-create_label "size: M" "BFDADC" "중간"
-create_label "size: T" "EDEDED" "작은 수정"
-create_label "blocked" "000000" "선행 작업 대기"
+echo "[github-bootstrap] removing legacy labels..."
+LEGACY=(
+  bug documentation duplicate enhancement feature blocked
+  "good first issue" "help wanted" invalid question wontfix
+  "type: feature" "type: bug" "type: chore" "type: docs"
+  "priority: P0" "priority: P1" "priority: P2" "priority: out"
+  "size: S" "size: M" "size: T"
+)
+for label in "${LEGACY[@]}"; do
+  delete_label "$label"
+done
 
-create_milestone() {
+echo "[github-bootstrap] labels (wave / kind / area / meta)..."
+create_label "wave:1" "B60205" "기반 — 인증·API·배포"
+create_label "wave:2" "0E8A16" "핵심 — 여행방·일정·추천·확정"
+create_label "wave:3" "D93F0B" "마무리 — 알림·달력·공유"
+create_label "wave:4" "FEF2C0" "이후 — 계정연결·고도화"
+
+create_label "kind: feature" "0E8A16" "새 기능·API"
+create_label "kind: bug"     "D73A4A" "버그·오동작"
+create_label "kind: chore"   "FBCA04" "CI·리팩터·설정"
+create_label "kind: docs"    "0075CA" "문서만"
+
+create_label "area: api"     "1D76DB" "REST API · controller"
+create_label "area: domain"  "5319E7" "엔티티 · 도메인"
+create_label "area: deploy"  "B60205" "Docker · EC2 · CI"
+create_label "area: docs"    "C5DEF5" "docs/ 기획·스펙"
+create_label "area: infra"   "666666" "DB · 설정 · 인프라"
+
+create_label "meta: blocked"   "000000" "선행 작업 대기"
+create_label "meta: duplicate" "CFD3D7" "중복 이슈"
+create_label "meta: wontfix"   "FFFFFF" "수정 안 함"
+
+upsert_milestone() {
   local title="$1"
   local description="$2"
-  local existing
-  existing="$(gh api "repos/${REPO}/milestones?state=all" --jq ".[] | select(.title==\"${title}\") | .number" 2>/dev/null | head -1)"
-  if [[ -n "$existing" ]]; then
-    echo "  milestone: ${title} (already #${existing})"
+  local number
+  number="$(gh api "repos/${REPO}/milestones?state=all" \
+    --jq ".[] | select(.title==\"${title}\") | .number" 2>/dev/null | head -1)"
+  if [[ -n "$number" ]]; then
+    gh api -X PATCH "repos/${REPO}/milestones/${number}" \
+      -f title="${title}" \
+      -f description="${description}" \
+      -f state=open >/dev/null
+    echo "  milestone: ${title} (#${number})"
     return 0
   fi
   gh api "repos/${REPO}/milestones" \
@@ -63,15 +85,38 @@ create_milestone() {
   echo "  milestone: ${title} (created)"
 }
 
+close_milestone() {
+  local title="$1"
+  local number
+  number="$(gh api "repos/${REPO}/milestones?state=all" \
+    --jq ".[] | select(.title==\"${title}\") | .number" 2>/dev/null | head -1)"
+  if [[ -n "$number" ]]; then
+    gh api -X PATCH "repos/${REPO}/milestones/${number}" -f state=closed >/dev/null
+    echo "  closed: ${title}"
+  fi
+}
+
 echo "[github-bootstrap] milestones..."
-create_milestone "MVP-1 — 여행방·일정·추천 (P0)" \
-  "docs/product/mvp.md P0: 여행방 생성/참여, 근무·연차 조건, 일정 추천, 확정 플로우"
+for old in \
+  "MVP-1 — 여행방·일정·추천 (P0)" \
+  "MVP-2 — 알림·시각화 (P1)" \
+  "MVP-3 — 편의·고도화 (P2)" \
+  "Foundation — 인증·공통 API" \
+  "MVP — 여행방·참여" \
+  "MVP — 일정·조건·추천" \
+  "MVP — 확정·시각화" \
+  "MVP — 알림·공유 (P1)" \
+  "Backlog — P2+"; do
+  close_milestone "$old"
+done
 
-create_milestone "MVP-2 — 알림·시각화 (P1)" \
-  "docs/product/mvp.md P1: 리마인드 알림, 메시지 공유, 그룹 달력 시각화"
+upsert_milestone "Wave 1 — 기반" \
+  "인증·JWT·API 규약·배포. docs/product/waves.md"
+upsert_milestone "Wave 2 — 핵심" \
+  "여행방·참여·일정·조건·추천·확정. docs/product/waves.md"
+upsert_milestone "Wave 3 — 마무리" \
+  "알림·달력·공유. docs/product/waves.md"
+upsert_milestone "Wave 4 — 이후" \
+  "계정연결·RTR·Apple S2S·고도화. docs/product/waves.md"
 
-create_milestone "MVP-3 — 편의·고도화 (P2)" \
-  "docs/product/mvp.md P2: 소셜 연동 상세, 알림 설정 등"
-
-echo "[github-bootstrap] done"
-echo "Create issues: GitHub UI templates or ask Agent — gh issue create ..."
+echo "[github-bootstrap] done — run scripts/github-sync-issues.sh to fix open issues"

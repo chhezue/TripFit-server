@@ -37,3 +37,15 @@
 | VoC | Voice of Customer | 고객 의견 |
 | CTA | Call To Action | 행동 유도 UI 요소 |
 | BR | Business Rule | `business-rules/` 규칙 ID 접두 |
+| wave | 개발 물결 | 계획·우선순위·단계 유일 축 — [`waves.md`](waves.md) |
+
+## wave (개발 물결)
+
+| wave | 한글 | 요약 |
+|------|------|------|
+| 1 | 기반 | 인증·API·배포 |
+| 2 | 핵심 | 여행방~일정 확정 |
+| 3 | 마무리 | 알림·달력·공유 |
+| 4 | 이후 | 계정 연결·고도화 |
+
+상세: [`waves.md`](waves.md)

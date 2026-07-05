@@ -1,15 +1,16 @@
-# 인증 토큰 Lifecycle P2 — RTR + Redis
+# 인증 토큰 Rotation — RTR + Redis
 
+- **wave:** 4
 - **상태:** 확정 (Redis access 전략만 `[미정]`)
 - **날짜:** 2026-07-06
 - **관련:**
-  - [`docs/decisions/001-auth-mobile-token-verification.md`](001-auth-mobile-token-verification.md) — 안 B (Phase 1)
-  - [`docs/specs/auth-social-login-mvp.md`](../specs/auth-social-login-mvp.md) — Phase 1 구현
-  - [`docs/specs/auth-token-lifecycle-p2.md`](../specs/auth-token-lifecycle-p2.md) — P2 구현 스펙
+  - [`docs/decisions/001-auth-mobile-token-verification.md`](001-auth-mobile-token-verification.md) — 안 B (wave 1)
+  - [`docs/specs/auth-social-login.md`](../specs/auth-social-login.md) — wave 1 구현
+  - [`docs/specs/auth-token-rotation.md`](../specs/auth-token-rotation.md) — wave 4 구현 스펙
 
 ## 맥락
 
-Phase 1(MVP)은 `POST /auth/login`, `/refresh`, `/logout`과 DB 기반 opaque refresh token, stateless access JWT(2h)로 시작한다.
+wave 1(MVP)은 `POST /auth/login`, `/refresh`, `/logout`과 DB 기반 opaque refresh token, stateless access JWT(2h)로 시작한다.
 
 운영·보안 요구가 커지면서 아래가 필요해진다.
 
@@ -27,11 +28,11 @@ Phase 1(MVP)은 `POST /auth/login`, `/refresh`, `/logout`과 DB 기반 opaque re
 
 2. **Redis를 인증 인프라에 도입한다.**
    - 용도: access JWT 관련 **상태 저장·조회** (블랙리스트 또는 화이트리스트 — 아래 `[미정]`)
-   - Phase 1 구현 시 Redis **미포함**. P2 스펙 Approved 후 추가
+   - wave 1 구현 시 Redis **미포함**. wave 4 스펙 Approved 후 추가
 
 ### `[미정]` — Redis access JWT 전략
 
-블랙리스트 vs 화이트리스트는 **P2 구현 착수 전** 팀 합의한다.
+블랙리스트 vs 화이트리스트는 **wave 4 구현 착수 전** 팀 합의한다.
 
 | 전략 | 개요 | 장점 | 단점 |
 |------|------|------|------|
@@ -40,35 +41,35 @@ Phase 1(MVP)은 `POST /auth/login`, `/refresh`, `/logout`과 DB 기반 opaque re
 
 **현재 가이드 (결정 전 참고):** access TTL 2h·하이브리드 앱 기준 **blacklist 우선 검토**. whitelist는 “전 기기 즉시 차단” 요구가 명확해질 때 decisions amend.
 
-## Phase 1 → P2 관계
+## wave 1 → wave 4 관계
 
-| 영역 | Phase 1 (MVP) | P2 (본 결정) |
+| 영역 | wave 1 (MVP) | wave 4 (본 결정) |
 |------|---------------|--------------|
 | login API | `POST /auth/login` | 변경 없음 |
 | refresh API | access JWT만 재발급, refresh row **유지** | access + **새 refreshToken** 재발급, 구 token revoke |
 | refresh 저장 | MySQL | MySQL (RTR) |
-| access JWT | stateless, `jti` claim **포함** (P2 대비) | + Redis 검증 (blacklist 또는 whitelist) |
+| access JWT | stateless, `jti` claim **포함** (wave 4 대비) | + Redis 검증 (blacklist 또는 whitelist) |
 | logout | refresh row 삭제 | refresh revoke + access `jti` Redis 등록 (전략 확정 후) |
 
-Phase 1 코드는 P2를 막지 않도록 **`jti`**, **`family_id`**, **`TokenRevocationChecker` interface(NoOp)** 를 포함한다. 상세는 [`auth-social-login-mvp.md`](../specs/auth-social-login-mvp.md).
+wave 1 코드는 wave 4를 막지 않도록 **`jti`**, **`family_id`**, **`TokenRevocationChecker` interface(NoOp)** 를 포함한다.
 
 ## 고려한 대안
 
 | 대안 | 채택 여부 | 사유 |
 |------|-----------|------|
 | Refresh Redis 저장 | **미채택** | opaque token + RTR은 DB가 audit·family revoke에 유리 |
-| Phase 1부터 RTR | **미채택** | MVP 일정·프론트 계약 단순화 우선 |
-| Redis 없이 access만 stateless | Phase 1만 | logout 후 access 2h 유효 — P2에서 Redis로 해소 |
+| wave 1부터 RTR | **미채택** | MVP 일정·프론트 계약 단순화 우선 |
+| Redis 없이 access만 stateless | wave 1만 | logout 후 access 2h 유효 — wave 4에서 Redis로 해소 |
 | Refresh rotation 없음 | **미채택** | refresh 탈취 시 장기 세션 위험 |
 
 ## 트레이드오프 · 후속 리스크
 
-- **프론트 계약 변경:** P2 refresh 응답에 `refreshToken` 필드 추가 — 클라이언트 저장 로직 필요
-- **Redis 운영:** EC2 colocated vs ElastiCache `[미정]` — `deploy/`·P2 스펙에서 확정
+- **프론트 계약 변경:** wave 4 refresh 응답에 `refreshToken` 필드 추가 — 클라이언트 저장 로직 필요
+- **Redis 운영:** EC2 colocated vs ElastiCache `[미정]` — `deploy/`·wave 4 스펙에서 확정
 - **Reuse false positive:** 네트워크 재시도로 구 refresh 재전송 시 family revoke — 클라이언트는 새 refresh만 사용하도록 가이드
 
 ## 후속 작업
 
-- [ ] [`auth-token-lifecycle-p2.md`](../specs/auth-token-lifecycle-p2.md) Draft → Approved
+- [ ] [`auth-token-rotation.md`](../specs/auth-token-rotation.md) Draft → Approved
 - [ ] Redis access 전략(blacklist vs whitelist) 팀 합의 → 본 decisions amend
-- [ ] Phase 1 구현 완료 후 P2 착수 (JwtFilter + Redis + RTR)
+- [ ] wave 1 구현 완료 후 wave 4 착수 (JwtFilter + Redis + RTR)

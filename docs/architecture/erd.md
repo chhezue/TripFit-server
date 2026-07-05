@@ -122,17 +122,17 @@ erDiagram
 
 ### `refresh_token` (리프레시 토큰)
 
-Phase 1 인증 Must Have. P2 RTR·Redis는 [`docs/specs/auth-token-lifecycle-p2.md`](../specs/auth-token-lifecycle-p2.md) 참고.
+wave 1 인증 Must Have. wave 4 RTR·Redis는 [`docs/specs/auth-token-rotation.md`](../specs/auth-token-rotation.md) 참고.
 
-- **관련 결정:** [`004-auth-token-lifecycle-p2.md`](../decisions/004-auth-token-lifecycle-p2.md)
+- **관련 결정:** [`004-auth-token-rotation.md`](../decisions/004-auth-token-rotation.md)
 
 | 컬럼 | 타입 | Nullable | PK/FK | 설명 |
 |------|------|----------|-------|------|
 | id | bigint | N | PK | |
 | user_id | bigint | N | FK → user.id | |
 | token | varchar(255) | N | | opaque token. UNIQUE |
-| family_id | char(36) | N | | UUID — login 체인 (P2 RTR) |
-| revoked_at | timestamptz | Y | | P2 rotation. Phase 1 logout은 row delete |
+| family_id | char(36) | N | | UUID — login 체인 (wave 4 RTR) |
+| revoked_at | timestamptz | Y | | wave 4 rotation. wave 1 logout은 row delete |
 | expires_at | timestamptz | N | | |
 | created_at | timestamptz | N | | |
 
@@ -246,7 +246,7 @@ Phase 1 인증 Must Have. P2 RTR·Redis는 [`docs/specs/auth-token-lifecycle-p2.
 | From | To | 관계 | 설명 |
 |------|-----|------|------|
 | user | trip_member | 1:N | 사용자는 여러 여행방 참여 |
-| user | refresh_token | 1:N | 사용자당 refresh token (Phase 1+) |
+| user | refresh_token | 1:N | 사용자당 refresh token (wave 1+) |
 | trip | trip_member | 1:N | 여행방에 여러 참여자 |
 | trip_member | member_schedule | 1:N | 참여자별 슬롯 일정 |
 | trip | recommendation | 1:N | 여행방당 TOP 3 후보 |

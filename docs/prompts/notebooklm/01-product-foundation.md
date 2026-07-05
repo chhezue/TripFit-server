@@ -43,7 +43,7 @@
 - MVP 목표 (검증 가설, 성공 지표)
 - In Scope (MVP 포함) — `- [ ]` 체크리스트
 - Out of Scope (v2 이후)
-- 우선순위 표 (순위 | 기능 | 이유) — P0 / P1 / P2
+- 우선순위 표 (wave | 기능 | 이유) — wave 1 / 2 / 3 / 4 (`docs/product/waves.md` 형식)
 - MVP 완료 기준
 - 의존성 / 선행 조건
 

@@ -20,5 +20,5 @@
 ## Checklist
 
 - [ ] 요청 범위만 수정 (drive-by 리팩터링 없음)
-- [ ] MVP / BR 범위 확인 (해당 시)
-- [ ] S 유형이면 `docs/specs/` 링크 또는 스펙 반영
+- [ ] `docs/product/waves.md` wave 범위 확인 (해당 시)
+- [ ] DB·인증·다파일 변경 시 `docs/specs/` 링크 또는 스펙 반영

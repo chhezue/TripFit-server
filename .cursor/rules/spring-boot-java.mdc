@@ -6,78 +6,59 @@ alwaysApply: false
 
 # Spring Boot / Java
 
-## Package Layout
+## Package Layout (Vertical Slice)
 
 ```
 com.tripfit.tripfit
-├── config/       # @Configuration, JPA, OpenAPI
-├── domain/       # @Entity, enums/
-├── repository/   # JpaRepository
-├── service/      # @Transactional 비즈니스 로직
-├── controller/   # @RestController
-└── dto/          # request/response (API 계약)
+├── common/              # api, config, domain(베이스), exception
+├── {feature}/           # auth, user, trip, ...
+│   ├── controller/      # @RestController, dto/
+│   ├── service/         # @Transactional 비즈니스 로직, 외부 연동
+│   ├── domain/          # JPA @Entity, enum (없으면 생략)
+│   ├── repository/      # JpaRepository, 기술 영속화 Entity
+│   └── config/          # (슬라이스 전용 설정)
 ```
 
-레이어·DDD: `docs/architecture.md` — Controller는 HTTP만, Application Service는 조율·트랜잭션, Domain에 BR.
+가이드: `docs/decisions/003-architecture-guide.md`, `docs/architecture.md`  
+**DDD 미적용** — JPA 연관관계·객체 그래프 탐색 허용.
 
-## DDD (구현 시)
+## 레이어 (최소 규칙)
 
-- 애그리거트 루트만 `JpaRepository` — `User`, `Trip` (상세: `architecture.md`)
-- **BR-*** · 상태 전이 → Entity 메서드 또는 `domain/` Domain Service. Service에만 if/else 로직 쌓지 않음
-- 애그리거트 간 참조는 ID. 다른 루트 Entity를 필드로 직접 보유하지 않음 (`@ManyToOne`은 필요 최소, 조회는 ID 기반)
-- Domain 예외 → Application에서 catch 또는 `GlobalExceptionHandler`가 `ErrorCode`로 envelope 변환
-- 한 유스케이스 = Application Service public 메서드 1개 + `@Transactional` (읽기만이면 `readOnly = true`)
-
-```java
-// ✅ Domain — BR·상태 전이
-public void confirm() {
-    if (this.status != TripStatus.ONGOING) {
-        throw new TripFitException(ErrorCode.TRIP_INVALID_STATUS);
-    }
-    this.status = TripStatus.CONFIRMED;
-}
-
-// ✅ Application — 조율만
-@Transactional
-public TripResponse confirmTrip(Long tripId, Long userId) {
-    Trip trip = tripRepository.findById(tripId).orElseThrow(...);
-    trip.confirm(); // 권한 검증은 Domain 또는 Service 선행
-    return TripResponse.from(trip);
-}
-
-// ❌ Service에 BR 전부 — Anemic
-if (trip.getStatus() != ONGOING) throw ...
-trip.setStatus(CONFIRMED);
-```
+- **controller**: HTTP·DTO만. `@Transactional`·비즈니스 로직 금지.
+- **service**: 유스케이스 조율, `@Transactional` (읽기만이면 `readOnly = true`).
+- **domain**: JPA Entity·enum.
+- **repository**: JpaRepository, `RefreshToken` 등 기술 영속화 Entity.
+- 예외 → `GlobalExceptionHandler`가 `ErrorCode`로 envelope 변환.
 
 ## Entity Conventions
 
-- 공통: `BaseTimeEntity` (`createdAt`, `updatedAt`)
-- Soft delete: `SoftDeleteEntity` (`deletedAt`) — 물리 삭제 대신 soft delete
-- Enum: `domain/enums/` 패키지, DB 컬럼은 `@Enumerated(EnumType.STRING)`
-- 테이블·컬럼: snake_case (`CamelCaseToUnderscoresNamingStrategy` 적용)
-- 예약어 컬럼: `@Column(name = "recommendation_rank")` 등 명시적 name
+- 공통: `common/domain/BaseTimeEntity`, `SoftDeleteEntity`
+- 비즈니스 Entity: `{feature}/domain/`
+- 기술 영속화: `{feature}/repository/` (예: `RefreshToken`)
+- Enum: `domain/` 패키지, `@Enumerated(EnumType.STRING)`
+- JPA `@ManyToOne` 등 연관관계 사용 가능 — 기본 `LAZY`
+- 테이블·컬럼: snake_case. 예약어 컬럼은 `@Column(name = "...")` 명시
 
 ```java
-// ✅ 엔티티는 DTO로 변환해 API 노출
-public TripResponse toResponse() { ... }
+// ✅ Controller는 DTO만 반환
+return TripResponse.from(trip);
 
-// ❌ Controller에서 Entity 직접 반환 금지
+// ❌ Entity 직접 반환 금지
 ```
 
 ## Style
 
 - Java 21 (records, pattern matching) 사용 가능
-- Lombok 미사용 — 명시적 getter/setter 또는 record
-- `@SpringBootApplication` 외 설정은 `config/` 패키지 `@Configuration`
+- Lombok 미사용
+- 공통 설정: `common/config/`, 슬라이스 전용: `{feature}/config/`
 
 ## API (추가 시)
 
-- `@RestController` + `@RequestMapping("/api/v1/...")` (버전 prefix 통일)
-- 응답 envelope: `docs/architecture/api-response.md` (**Draft** — 합의 후 `ApiResponse<T>`, `ErrorCode` 구현)
-- 요청 검증: Jakarta Validation (`@Valid`, ...) → HTTP 400 + `INVALID_INPUT` + `errors[].message`
-- 예외: `@RestControllerAdvice` + `{ code, message }` (Body에 HTTP status 중복 금지)
-- 문서: springdoc — 컨트롤러에 `@Operation`, `@Tag` (기존 `OpenApiConfig` 참고)
+- `@RestController` + `@RequestMapping("/api/v1/...")`
+- 응답 envelope: `docs/architecture/api-response.md` (Draft)
+- 요청 검증: Jakarta Validation (`@Valid`)
+- 예외: `@RestControllerAdvice` + `{ code, message }`
+- 문서: springdoc — `@Operation`, `@Tag`
 
 ## Configuration
 
@@ -87,6 +68,6 @@ public TripResponse toResponse() { ... }
 
 ## Tests
 
-- JUnit 5, 클래스명 `{ClassName}Test`
+- JUnit 5, `{ClassName}Test`
 - 통합: `@SpringBootTest` + `test` 프로필 (H2)
-- 단위: Service·도메인 로직은 Mockito로 Repository mock
+- 단위: service·도메인 — Mockito로 Repository mock

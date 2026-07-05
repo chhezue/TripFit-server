@@ -3,56 +3,50 @@
 ## Overview
 
 Spring Boot 4.x 기반 단일 모듈 Gradle 프로젝트.  
-도메인 엔티티·설정 스캐폴딩이 있으며, API·서비스 레이어는 기능 추가 시 아래 구조를 따릅니다.
+**기능 중심 Vertical Slice** + 슬라이스 내부 **Controller / Service / Repository** 레이어를 사용합니다. DDD는 적용하지 않으며, JPA 연관관계를 자유롭게 활용합니다.
 
-## Package Layout
+> 아키텍처 결정: [`decisions/003-architecture-guide.md`](decisions/003-architecture-guide.md)
+
+## Package Layout (Vertical Slice)
+
+기능(슬라이스) 단위로 코드를 묶고, 슬라이스 내부에서 controller → service → domain → repository 레이어를 둡니다.  
+공통 설정·예외·베이스 엔티티는 `common/`에 둡니다.
 
 ```
 com.tripfit.tripfit
-├── TripfitApplication.java    # 진입점
-├── config/                    # Spring 설정 (JPA, OpenAPI 등)
-├── domain/                    # @Entity, enums/
-├── repository/                # JPA Repository (추가 예정)
-├── service/                   # 비즈니스 로직 (추가 예정)
-├── controller/                # REST API (추가 예정)
-└── dto/                       # 요청·응답 DTO (추가 예정)
+├── TripfitApplication.java
+├── common/
+│   ├── api/                        # ErrorResponse 등 공유 DTO
+│   ├── config/                     # JPA, Web, OpenAPI
+│   ├── domain/                     # BaseTimeEntity, SoftDeleteEntity
+│   └── exception/                  # ErrorCode, TripFitException, GlobalExceptionHandler
+├── auth/
+│   ├── controller/                 # AuthController, dto/
+│   ├── service/                    # AuthService, JwtService, social/, security/
+│   ├── config/
+│   └── repository/                 # RefreshToken, RefreshTokenRepository
+├── user/
+│   ├── domain/                     # User, UserCondition, SocialProvider
+│   └── repository/                 # UserRepository
+└── trip/
+    └── domain/                     # Trip, TripMember, MemberSchedule, Recommendation, enums
 ```
 
-## Layer Rules
+새 기능 추가 시 `com.tripfit.tripfit.{feature}/` 슬라이스를 만들고, 위 내부 레이어 규칙을 따릅니다.
 
-- **Controller**: HTTP 입출력·DTO 변환만. 비즈니스 로직·트랜잭션 금지.
-- **Service** (Application): 유스케이스 조율, `@Transactional` 경계, Repository 호출. BR 검증은 Domain에 위임.
-- **Domain**: 엔티티·enum·(필요 시) Domain Service — **불변식·상태 전이·BR-*** 구현.
-- **Repository**: 애그리거트 루트 영속화만. Controller/Service에서 직접 SQL 금지.
-- **DTO**: API 계약 (`dto/`). 엔티티를 그대로 노출하지 않음.
+## Layer Rules (슬라이스 내부)
 
-## DDD (전술, MVP 단일 모듈)
+- **controller**: HTTP 입출력·DTO 변환만. 비즈니스 로직·트랜잭션 금지.
+- **service**: 유스케이스 조율, `@Transactional`, Repository·외부 API 호출.
+- **domain**: JPA `@Entity`, enum. `@ManyToOne` 등 연관관계 사용 가능.
+- **repository**: `JpaRepository`, 기술 영속화 엔티티(토큰 등).
+- **common**: 슬라이스 간 공유 설정·예외·베이스 엔티티.
 
-> 결정 근거: [`decisions/003-ddd-tactical.md`](../decisions/003-ddd-tactical.md)  
-> MVP는 **바운디드 컨텍스트 1개**(TripFit) — 패키지·모듈 분리는 하지 않음.
+### JPA
 
-### 애그리거트 (초안)
-
-| 루트 | 포함 엔티티 | 비고 |
-|------|-------------|------|
-| `User` | `User`, `UserCondition` | 1:1 조건은 User 경유로만 변경 |
-| `Trip` | `Trip`, `TripMember`, `MemberSchedule`, `Recommendation` | 여행방·참여·일정·추천은 Trip 루트 일관성 |
-
-- 다른 애그리거트 참조는 **ID만** (`userId`, `tripId`) — 루트 객체 직접 참조·cascade 남용 금지.
-- 애그리거트 간 규칙은 Application Service에서 조율 (한 트랜잭션에 여러 루트 변경 시 스펙에 명시).
-
-### 책임 분리
-
-| 계층 | 둘 것 | 두지 말 것 |
-|------|-------|------------|
-| **Domain** | 상태 전이 (`TripStatus`), BR 위반 시 예외, 엔티티 메서드 | HTTP, DTO, `@Transactional` |
-| **Application (service/)** | 유스케이스 흐름, 트랜잭션, DTO↔Domain 변환 | if/else로 BR 전부 구현 (Anemic 방지) |
-| **Infrastructure (repository/, config/)** | JPA, 외부 연동 설정 | 비즈니스 규칙 |
-
-### 하지 않는 것 (MVP)
-
-- 이벤트 소싱, CQRS, 별도 `application`/`infrastructure` Gradle 모듈
-- 컨텍스트맵·ACL — 팀·도메인 확장 시 `decisions/`에 추가 검토
+- ERD([`architecture/erd.md`](architecture/erd.md)) 기준으로 연관관계·객체 그래프 탐색 허용.
+- 기본 `FetchType.LAZY`. cascade는 필요할 때만.
+- API 응답에는 Entity를 직접 노출하지 않고 DTO로 변환.
 
 구현 체크리스트: `.cursor/rules/spring-boot-java.mdc`
 
@@ -91,7 +85,7 @@ JSON envelope 초안 (프론트 합의 전): [`architecture/api-response.md`](ar
 
 - ERD: [erd.md](architecture/erd.md) — MVP 6테이블 (`user`, `user_condition`, `trip`, `trip_member`, `member_schedule`, `recommendation`)
 - **런타임 DB: MySQL 8.0** — snake_case 단수형 테이블명, Soft Delete (`deleted_at`)
-- 엔티티: `SoftDeleteEntity`, `BaseTimeEntity`, enum은 `domain/enums/`
+- 엔티티: `common/domain/` (베이스), 슬라이스 `domain/` (비즈니스), `repository/` (기술 영속화)
 
 ## Deployment
 

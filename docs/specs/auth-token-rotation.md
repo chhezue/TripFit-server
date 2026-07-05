@@ -1,28 +1,29 @@
-# 인증 토큰 Lifecycle P2 — RTR + Redis
+# 인증 토큰 Rotation — RTR + Redis
 
-> 상태: Draft  
-> 선행: Phase 1 [`auth-social-login-mvp.md`](auth-social-login-mvp.md) 구현 완료  
-> 결정: [`docs/decisions/004-auth-token-lifecycle-p2.md`](../decisions/004-auth-token-lifecycle-p2.md) — **RTR 확정**, **Redis 확정**, access blacklist/whitelist **`[미정]`**
+> wave: 4  
+> 선행: wave 1 [`auth-social-login.md`](auth-social-login.md)  
+> 결정: [`docs/decisions/004-auth-token-rotation.md`](../decisions/004-auth-token-rotation.md) — **RTR 확정**, **Redis 확정**, access blacklist/whitelist **`[미정]`**  
+> 상태: Draft
 
 ## 목표
 
-Phase 1 이후 아래를 도입한다.
+wave 1 이후 아래를 도입한다.
 
 1. **Refresh Token Rotation (RTR)** — refresh 시 token 교체 + reuse detection
 2. **Redis** — access JWT lifecycle 보조 (blacklist 또는 whitelist, 전략 확정 후 구현)
 
 ## 배경
 
-- Phase 1: DB refresh + stateless access JWT (`jti` 포함)
-- 확정된 후속: RTR + Redis ([`004`](../decisions/004-auth-token-lifecycle-p2.md))
+- wave 1: DB refresh + stateless access JWT (`jti` 포함)
+- 확정된 후속: RTR + Redis ([`004`](../decisions/004-auth-token-rotation.md))
 - login API shape·단일 `POST /auth/login`은 **변경 없음**
 
 ### 관련 문서
 
 | 문서 | 내용 |
 |------|------|
-| `auth-social-login-mvp.md` | Phase 1 baseline |
-| `004-auth-token-lifecycle-p2.md` | RTR·Redis 결정 |
+| `auth-social-login.md` | wave 1 baseline |
+| `004-auth-token-rotation.md` | RTR·Redis 결정 |
 | `architecture/erd.md` | `refresh_token` + `family_id` |
 
 ## 아키텍처 개요
@@ -53,7 +54,7 @@ sequenceDiagram
 
 ## 요구사항
 
-### Must Have (P2)
+### Must Have (wave 4)
 
 - [ ] **RTR:** `POST /auth/refresh` 성공 시 새 `refreshToken` 발급, 기존 refresh revoke
 - [ ] **Reuse detection:** revoke된 refresh 재사용 → `AUTH_REFRESH_REUSE` + 해당 `family_id` 전체 revoke
@@ -91,15 +92,15 @@ sequenceDiagram
 
 ## API 변경
 
-### `POST /api/v1/auth/refresh` — P2 응답 확장
+### `POST /api/v1/auth/refresh` — wave 4 응답 확장
 
-Phase 1:
+wave 1:
 
 ```json
 { "accessToken": "...", "expiresIn": 7200 }
 ```
 
-**P2 (additive):**
+**wave 4 (additive):**
 
 ```json
 {
@@ -110,7 +111,7 @@ Phase 1:
 ```
 
 - `login` 응답: **변경 없음**
-- 클라이언트: P2 배포 시 refresh 응답의 `refreshToken` **필수 저장**
+- 클라이언트: wave 4 배포 시 refresh 응답의 `refreshToken` **필수 저장**
 
 ### 에러 추가
 
@@ -120,14 +121,14 @@ Phase 1:
 
 ## 데이터 모델
 
-### `refresh_token` — P2 컬럼 (Phase 1에서 선반영 권장)
+### `refresh_token` — wave 4 컬럼 (wave 1에서 선반영 권장)
 
 | 컬럼 | 타입 | Nullable | 설명 |
 |------|------|----------|------|
 | family_id | char(36) | N | UUID — 동일 로그인 체인. login 시 신규, rotation 시 유지 |
-| revoked_at | datetime(6) | Y | revoke 시각. P2 rotation 시 set. Phase 1 logout은 delete 가능 |
+| revoked_at | datetime(6) | Y | revoke 시각. wave 4 rotation 시 set. wave 1 logout은 delete 가능 |
 
-Phase 1: login마다 새 `family_id`, `revoked_at` null. P2: rotation 시 old row `revoked_at` set (또는 soft revoke 후 delete 정책 — 구현 시 하나로 통일).
+wave 1: login마다 새 `family_id`, `revoked_at` null. wave 4: rotation 시 old row `revoked_at` set (또는 soft revoke 후 delete 정책 — 구현 시 하나로 통일).
 
 **인덱스 추가:** `INDEX (family_id)`, `INDEX (user_id, revoked_at)`
 
@@ -141,17 +142,23 @@ Phase 1: login마다 새 `family_id`, `revoked_at` null. P2: rotation 시 old ro
 ## 패키지 / 코드 (예정)
 
 ```
-service/
-├── RefreshTokenService.java     # rotation, family revoke
-security/
-├── TokenRevocationChecker.java  # interface (Phase 1 NoOp)
-├── NoOpTokenRevocationChecker.java
-├── RedisTokenRevocationChecker.java   # P2 — blacklist or whitelist impl
-config/
-├── RedisConfig.java
+auth/
+├── service/
+│   ├── RefreshTokenService.java     # rotation, family revoke
+│   └── security/
+│       ├── TokenRevocationChecker.java
+│       ├── NoOpTokenRevocationChecker.java
+│       └── RedisTokenRevocationChecker.java   # wave 4
+├── config/
+│   └── RedisConfig.java             # wave 4
+└── repository/
+    ├── RefreshToken.java
+    └── RefreshTokenRepository.java
 ```
 
-## 환경 변수 (P2 추가)
+패키징 가이드: `docs/decisions/003-architecture-guide.md`
+
+## 환경 변수 (wave 4 추가)
 
 | 변수 | 용도 |
 |------|------|
@@ -160,7 +167,7 @@ config/
 | `REDIS_PASSWORD` | optional |
 | `AUTH_REDIS_MODE` | `blacklist` \| `whitelist` — `[미정]` |
 
-`deploy/app/.env.example` P2 PR에서 갱신.
+`deploy/app/.env.example` wave 4 PR에서 갱신.
 
 ## 검증 시나리오
 
@@ -180,7 +187,7 @@ config/
 - [ ] decisions `004` Redis 전략 `[미정]` → 확정 amend
 - [ ] Approved 후 `./gradlew test` + staging Redis 연동
 - [ ] 프론트: refresh 응답 `refreshToken` 저장 배포
-- [ ] `erd.md` P2 컬럼·Redis 운영 메모 동기화
+- [ ] `erd.md` wave 4 컬럼·Redis 운영 메모 동기화
 
 ## 변경 이력
 

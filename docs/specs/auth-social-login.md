@@ -1,12 +1,13 @@
-# 소셜 로그인 · JWT 인증 (MVP · Phase 1)
+# 소셜 로그인 · JWT 인증
 
+> wave: 1  
+> implements: BR-USER-001  
+> deferred: BR-USER-003  
 > 상태: Approved  
 > 승인: 2026-06-30 (팀 — DB 변경 허용 조건 포함)  
-> 범위: **Phase 1** — login / refresh / logout baseline (RTR·Redis **미포함**)  
-> MVP: In scope (`mvp.md` — 사용자 인증 및 소셜 로그인)  
-> 관련 BR: BR-USER-001, BR-USER-003 (부분 — 연동은 Out)  
+> 범위: login / refresh / logout baseline (RTR·Redis **미포함**)  
 > 결정: [안 B] [`docs/decisions/001-auth-mobile-token-verification.md`](../decisions/001-auth-mobile-token-verification.md)  
-> 후속 (확정): RTR + Redis — [`docs/decisions/004-auth-token-lifecycle-p2.md`](../decisions/004-auth-token-lifecycle-p2.md), [`auth-token-lifecycle-p2.md`](auth-token-lifecycle-p2.md)
+> 후속 (wave 4): RTR + Redis — [`docs/decisions/004-auth-token-rotation.md`](../decisions/004-auth-token-rotation.md), [`auth-token-rotation.md`](auth-token-rotation.md)
 
 ## 목표
 
@@ -21,7 +22,7 @@ React 앱(최종 Play·App Store)에서 Google / Kakao / Apple 로그인 후 Tri
 - **인증 플로우**: 앱 SDK가 id_token / access_token을 획득 → **백엔드가 토큰을 검증**하는 REST API (서버 리다이렉트 OAuth2 플로우 아님)
 - **API 형태**: provider별 엔드포인트 분리 **하지 않음** — `POST /api/v1/auth/login` 단일 엔드포인트 + `provider` enum
 - **확장 예정**: Google 캘린더 연동 (MVP+1) — 본 스펙에서는 테이블·API 확장 여지만 고려
-- **계정 연결**(BR-USER-003, Kakao+Google 통합): MVP P2 — **Out of Scope**
+- **계정 연결**(BR-USER-003, Kakao+Google 통합): wave 4 — **Out of Scope**
 - **Apple S2S Notification**: MVP 로그인과 별도 — 스토어 제출 전 [`auth-apple-server-notifications.md`](auth-apple-server-notifications.md)
 
 ### 관련 문서
@@ -29,22 +30,22 @@ React 앱(최종 Play·App Store)에서 Google / Kakao / Apple 로그인 후 Tri
 | 문서 | 내용 |
 |------|------|
 | `docs/product/platform.md` | 하이브리드 앱·스토어 심사·프론트 계약 요약 |
-| `docs/product/mvp.md` | 인증 In scope, 계정 연동 P2 |
+| `docs/product/mvp.md` | 인증 In scope, 계정 연동 wave 4 |
 | `docs/product/business-rules/user.md` | BR-USER-001, BR-USER-003 |
 | `docs/architecture/erd.md` | `user` 테이블 정의 |
 | `docs/product/design/figma-wireframe-v1.md` | Google / Kakao / Apple 로그인 화면 |
 | `docs/specs/auth-apple-server-notifications.md` | Apple 계정 변경 webhook (스토어 제출 전) |
-| `docs/decisions/004-auth-token-lifecycle-p2.md` | **확정** — RTR + Redis (P2) |
-| `docs/specs/auth-token-lifecycle-p2.md` | P2 구현 스펙 (Draft) |
+| `docs/decisions/004-auth-token-rotation.md` | **확정** — RTR + Redis (wave 4) |
+| `docs/specs/auth-token-rotation.md` | wave 4 구현 스펙 (Draft) |
 
-## Phase 1 vs Phase 2
+## wave 1 vs wave 4
 
-| | Phase 1 (본 스펙) | Phase 2 (확정, 별도 스펙) |
+| | wave 1 (본 스펙) | wave 4 (확정, 별도 스펙) |
 |--|-------------------|---------------------------|
 | **Refresh rotation (RTR)** | 미적용 — refresh row 유지 | refresh마다 token 교체 + reuse detection |
 | **Redis** | 미사용 | access JWT용 **도입 확정** (blacklist vs whitelist `[미정]`) |
 | **refresh 응답** | `accessToken`만 | + `refreshToken` (새 opaque token) |
-| **준비 (Phase 1 코드)** | `jti`, `family_id`, `TokenRevocationChecker` NoOp | P2에서 Redis·RTR 구현체 교체 |
+| **준비 (wave 1 코드)** | `jti`, `family_id`, `TokenRevocationChecker` NoOp | wave 4에서 Redis·RTR 구현체 교체 |
 
 ## 하이브리드 앱 (WebView) 맥락
 
@@ -173,9 +174,9 @@ Access JWT (2h) + Refresh Token (30d, DB) 발급
 - [ ] Google / Kakao / Apple 3종 provider 지원 (`SocialProvider` enum 기존 값 사용)
 - [ ] 신규 로그인 시 `user` 레코드 생성 (nickname 기본값: provider별 fallback)
 - [ ] 기존 `(provider, social_id)` 조합이면 동일 user 반환 (재로그인 = upsert)
-- [ ] Access JWT: HS256 또는 RS256, `sub` = `user.id`, **`jti` = UUID (P2 Redis 대비)**, 만료 2시간
-- [ ] Refresh token: DB 저장, **`family_id` 포함 (P2 RTR 대비)**, 만료 30일, 로그아웃 시 삭제
-- [ ] `TokenRevocationChecker` interface + NoOp 구현 (P2 Redis 교체용)
+- [ ] Access JWT: HS256 또는 RS256, `sub` = `user.id`, **`jti` = UUID (wave 4 Redis 대비)**, 만료 2시간
+- [ ] Refresh token: DB 저장, **`family_id` 포함 (wave 4 RTR 대비)**, 만료 30일, 로그아웃 시 삭제
+- [ ] `TokenRevocationChecker` interface + NoOp 구현 (wave 4 Redis 교체용)
 - [ ] `JwtAuthenticationFilter` + 인증 필요 API 보호
 - [ ] `@AuthorizedUser` ArgumentResolver로 컨트롤러에 로그인 유저 ID 주입
 - [ ] 일관된 에러 응답 body (`code` + `message`) — 앱 파싱 가능
@@ -184,13 +185,13 @@ Access JWT (2h) + Refresh Token (30d, DB) 발급
 
 ### Nice to Have
 
-- [ ] 동시 기기 refresh token 상한 (예: user당 5개) — P2 [`auth-token-lifecycle-p2.md`](auth-token-lifecycle-p2.md) 검토
+- [ ] 동시 기기 refresh token 상한 (예: user당 5개) — wave 4 [`auth-token-rotation.md`](auth-token-rotation.md) 검토
 - [ ] `GET /api/v1/auth/me` — 현재 유저 프로필 조회
 
-### Out of Scope (Phase 1 — P2·별도 스펙)
+### Out of Scope (wave 1 — wave 4·별도 스펙)
 
-- **Refresh Token Rotation (RTR)** — P2 확정 [`004`](../decisions/004-auth-token-lifecycle-p2.md), [`auth-token-lifecycle-p2.md`](auth-token-lifecycle-p2.md)
-- **Redis** (access blacklist/whitelist) — P2 확정, 전략 `[미정]`
+- **Refresh Token Rotation (RTR)** — wave 4 확정 [`004`](../decisions/004-auth-token-rotation.md), [`auth-token-rotation.md`](auth-token-rotation.md)
+- **Redis** (access blacklist/whitelist) — wave 4 확정, 전략 `[미정]`
 - 자체 이메일/비밀번호 회원가입
 - 계정 연결 — BR-USER-003 (Kakao + Google → 하나의 user)
 - `user_identity` 테이블 분리
@@ -280,7 +281,7 @@ Access JWT (2h) + Refresh Token (30d, DB) 발급
 }
 ```
 
-**Response `200` (Phase 1)**
+**Response `200` (wave 1)**
 
 ```json
 {
@@ -289,7 +290,7 @@ Access JWT (2h) + Refresh Token (30d, DB) 발급
 }
 ```
 
-> **Phase 2 (RTR):** 동일 endpoint에 `refreshToken` 필드 **추가** — [`auth-token-lifecycle-p2.md`](auth-token-lifecycle-p2.md). Phase 1 클라이언트는 `accessToken`만 사용.
+> **wave 4 (RTR):** 동일 endpoint에 `refreshToken` 필드 **추가** — [`auth-token-rotation.md`](auth-token-rotation.md). wave 1 클라이언트는 `accessToken`만 사용.
 
 ### `POST /api/v1/auth/logout`
 
@@ -328,7 +329,7 @@ Authorization: Bearer <accessToken>
 
 | 금지 (별도 스펙·승인 필요) | 이유 |
 |---------------------------|------|
-| `user_identity` 분리·`user` 구조 대규모 개편 | BR-USER-003 계정 연결 — P2 |
+| `user_identity` 분리·`user` 구조 대규모 개편 | BR-USER-003 계정 연결 — wave 4 |
 | `user` 테이블 rename (`users` 등) | 도메인 전역 영향 — decisions + 팀 합의 |
 | Flyway `V1__init_schema.sql` 수정 | immutable — 변경은 `V2__` append만 |
 
@@ -356,21 +357,21 @@ Authorization: Bearer <accessToken>
 | id | bigint | N | PK |
 | user_id | bigint | N | FK → `user(id)` |
 | token | varchar(255) | N | opaque token (UUID v4 등). UNIQUE |
-| family_id | char(36) | N | UUID — login 체인 (P2 RTR). Phase 1: login마다 신규 |
-| revoked_at | datetime(6) | Y | P2 rotation용. Phase 1 logout은 row **delete** |
+| family_id | char(36) | N | UUID — login 체인 (wave 4 RTR). wave 1: login마다 신규 |
+| revoked_at | datetime(6) | Y | wave 4 rotation용. wave 1 logout은 row **delete** |
 | expires_at | datetime(6) | N | 만료 시각 |
 | created_at | datetime(6) | N | 발급 시각 |
 
 **인덱스**: `UNIQUE (token)`, `INDEX (user_id)`, `INDEX (family_id)`
 
-**정책 (Phase 1)**
+**정책 (wave 1)**
 
 - 로그아웃: 해당 refresh token row 삭제
 - refresh: access JWT만 재발급, refresh row **유지** (rotation 없음)
 - 만료: refresh 요청 시 401 + row 삭제
 - user soft delete 시: 연관 refresh token 전부 삭제
 
-**정책 (Phase 2 — RTR)** — [`auth-token-lifecycle-p2.md`](auth-token-lifecycle-p2.md)
+**정책 (wave 4 — RTR)** — [`auth-token-rotation.md`](auth-token-rotation.md)
 
 ### 내부 표준 타입 — `OAuthProfile` (코드 내, DB 아님)
 
@@ -415,40 +416,25 @@ Authorization: Bearer <accessToken>
 | BR | 적용 내용 | 구현 위치 (예정) |
 |----|-----------|------------------|
 | BR-USER-001 | 여행방 생성 등 방장 기능은 로그인 필수 | `JwtAuthenticationFilter` + trip API에서 `@AuthorizedUser` |
-| BR-USER-003 | 소셜 계정 연동·해제 | **Out of Scope** — P2에서 `user_identity` 스펙으로 분리 |
+| BR-USER-003 | 소셜 계정 연동·해제 | **Out of Scope** — wave 4에서 `user_identity` 스펙으로 분리 |
 
-## 패키지 구조 (예정)
+## 패키지 구조
 
 ```
 com.tripfit.tripfit
-├── config/
-│   ├── SecurityConfig.java
-│   └── JwtProperties.java
-├── controller/
-│   └── AuthController.java
-├── dto/
-│   └── auth/  (LoginRequest, TokenResponse, ...)
-├── domain/
-│   ├── RefreshToken.java          # 신규
-│   └── enums/SocialProvider.java  # 기존
-├── repository/
-│   ├── UserRepository.java
-│   └── RefreshTokenRepository.java
-├── service/
-│   ├── AuthService.java
-│   ├── JwtService.java
-│   ├── RefreshTokenService.java          # refresh CRUD·Phase 2 rotation 확장
-│   └── social/
-│       ├── SocialTokenVerifier.java      # interface
-│       ├── GoogleTokenVerifier.java
-│       ├── KakaoTokenVerifier.java
-│       └── AppleTokenVerifier.java
-└── security/
-    ├── JwtAuthenticationFilter.java
-    ├── TokenRevocationChecker.java       # interface — Phase 1 NoOp
-    ├── NoOpTokenRevocationChecker.java
-    ├── AuthorizedUser.java               # annotation
-    └── AuthorizedUserArgumentResolver.java
+├── common/
+│   ├── api/ErrorResponse.java
+│   ├── config/          # JpaConfig, WebConfig, OpenApiConfig
+│   ├── domain/          # BaseTimeEntity, SoftDeleteEntity
+│   └── exception/
+├── auth/
+│   ├── controller/      # AuthController, dto/
+│   ├── service/           # AuthService, JwtService, RefreshTokenService, social/, security/
+│   ├── config/            # JwtProperties, OAuthProperties, SecurityConfig, AppConfig
+│   └── repository/        # RefreshToken, RefreshTokenRepository
+└── user/
+    ├── domain/            # User, SocialProvider
+    └── repository/        # UserRepository
 ```
 
 ## 환경 변수 (`.env` — 커밋 금지)
@@ -512,8 +498,8 @@ com.tripfit.tripfit
 | Google client ID (iOS vs Android) | `[미정]` | login 요청에 `platform` 필드 추가 여부 — 프론트 합의 |
 | Apple `aud` 값 (bundle ID vs Services ID) | `[미정]` | 프론트 Sign In with Apple 설정과 일치 필요 |
 | nickname 기본값 정책 | `[미정]` | provider 프로필 없을 때 `"사용자{n}"` 등 |
-| Refresh token rotation (RTR) | **P2 확정** | [`004`](../decisions/004-auth-token-lifecycle-p2.md) — Phase 1 Out |
-| Redis (access JWT) | **P2 확정** | blacklist vs whitelist `[미정]` |
+| Refresh token rotation (RTR) | **wave 4 확정** | [`004`](../decisions/004-auth-token-rotation.md) — wave 1 Out |
+| Redis (access JWT) | **wave 4 확정** | blacklist vs whitelist `[미정]` |
 | JWT 서명 알고리즘 HS256 vs RS256 | `[미정]` | 단일 서버 MVP는 HS256으로 시작 가능 |
 | 캘린더 연동 token 저장 | Out | MVP+1에서 `calendar_integration` 또는 `user_identity` 스펙으로 |
 | ERD `user` 테이블 email 컬럼 | Out | 계정 연결·알림 필요 시 추가 |
@@ -534,4 +520,4 @@ com.tripfit.tripfit
 | 2026-06-30 | 초안 (안 B 채택) |
 | 2026-06-30 | DB 변경 허용 정책 추가, Approved, decisions `001` 연결 |
 | 2026-07-06 | 하이브리드 앱·스토어 심사 주의사항·단일 login 엔드포인트·프론트 합의 체크리스트 추가 |
-| 2026-07-06 | Phase 1 명시, RTR+Redis P2 분리 (`004`, `auth-token-lifecycle-p2`), `jti`·`family_id`·NoOp revocation |
+| 2026-07-06 | wave 1 명시, RTR+Redis wave 4 분리 (`004`, `auth-token-rotation`), `jti`·`family_id`·NoOp revocation |
