@@ -1,5 +1,6 @@
-# 로컬 기본: mysql + app
-# API Nginx 로컬 테스트: docker compose --profile edge up -d --build
+# 로컬 개발 (권장): MySQL만 기동 — Spring은 ./gradlew bootRun (local 프로필, .env 로드)
+# 전체 Docker 스택: docker compose --profile app up -d --build
+# API Nginx 로컬 테스트: docker compose --profile edge --profile app up -d --build
 #   /etc/hosts: 127.0.0.1 api.tripfit.online
 services:
   nginx:
@@ -55,6 +56,7 @@ services:
         max-file: "3"
 
   app:
+    profiles: ["app"]
     build: .
     container_name: tripfit-app
     restart: unless-stopped
@@ -67,6 +69,13 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:-local-dev-secret-must-be-at-least-32-chars}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-7200}
+      JWT_REFRESH_EXPIRATION_DAYS: ${JWT_REFRESH_EXPIRATION_DAYS:-30}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_ID_IOS: ${GOOGLE_CLIENT_ID_IOS:-}
+      GOOGLE_CLIENT_ID_ANDROID: ${GOOGLE_CLIENT_ID_ANDROID:-}
+      APPLE_CLIENT_ID: ${APPLE_CLIENT_ID:-}
       TZ: Asia/Seoul
     depends_on:
       mysql:

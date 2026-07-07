@@ -6,8 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class JwtProperties {
 
 	private String secret;
-	private long accessExpirationSeconds = 3600;
-	private int refreshExpirationDays = 14;
+	private long accessExpirationSeconds = 7200;
+	private int refreshExpirationDays = 30;
 
 	public String getSecret() {
 		return secret;

@@ -1,9 +1,10 @@
-# 로컬 개발 — Hibernate ddl-auto: update
+# 로컬 개발 — Docker MySQL + ./gradlew bootRun
+# DB: docker compose up -d  |  App: ./gradlew bootRun (.env 자동 로드)
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/tripfit?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: ""
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:tripfit}?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:tripfit}
   jpa:
     hibernate:
       ddl-auto: update

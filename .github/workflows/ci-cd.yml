@@ -71,11 +71,16 @@ jobs:
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_ID_IOS: ${{ secrets.GOOGLE_CLIENT_ID_IOS }}
+          GOOGLE_CLIENT_ID_ANDROID: ${{ secrets.GOOGLE_CLIENT_ID_ANDROID }}
+          APPLE_CLIENT_ID: ${{ secrets.APPLE_CLIENT_ID }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: GHCR_PAT,GHCR_IMAGE,GHCR_USERNAME,SPRING_DATASOURCE_USERNAME,SPRING_DATASOURCE_PASSWORD
+          envs: GHCR_PAT,GHCR_IMAGE,GHCR_USERNAME,SPRING_DATASOURCE_USERNAME,SPRING_DATASOURCE_PASSWORD,JWT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_ID_IOS,GOOGLE_CLIENT_ID_ANDROID,APPLE_CLIENT_ID
           script: |
             set -euo pipefail
             if [[ -z "${GHCR_PAT:-}" ]]; then
@@ -94,6 +99,11 @@ jobs:
             ghcr_image="${GHCR_IMAGE:-}"
             db_user="${SPRING_DATASOURCE_USERNAME:-}"
             db_pass="${SPRING_DATASOURCE_PASSWORD:-}"
+            jwt_secret="${JWT_SECRET:-}"
+            google_client_id="${GOOGLE_CLIENT_ID:-}"
+            google_client_id_ios="${GOOGLE_CLIENT_ID_IOS:-}"
+            google_client_id_android="${GOOGLE_CLIENT_ID_ANDROID:-}"
+            apple_client_id="${APPLE_CLIENT_ID:-}"
             if [[ -f .env ]]; then
               set -a
               # shellcheck disable=SC1091
@@ -103,6 +113,11 @@ jobs:
             export GHCR_IMAGE="${ghcr_image:-$GHCR_IMAGE}"
             export SPRING_DATASOURCE_USERNAME="${db_user:?SPRING_DATASOURCE_USERNAME secret is required}"
             export SPRING_DATASOURCE_PASSWORD="${db_pass:?SPRING_DATASOURCE_PASSWORD secret is required}"
+            export JWT_SECRET="${jwt_secret:?JWT_SECRET secret is required}"
+            export GOOGLE_CLIENT_ID="${google_client_id:-}"
+            export GOOGLE_CLIENT_ID_IOS="${google_client_id_ios:-}"
+            export GOOGLE_CLIENT_ID_ANDROID="${google_client_id_android:-}"
+            export APPLE_CLIENT_ID="${apple_client_id:-}"
             docker compose pull app
             # ec2-deploy-app.sh 와 동일: nginx 443 기동용 TLS material 보장
             ../../scripts/ensure-ssl-certs.sh
