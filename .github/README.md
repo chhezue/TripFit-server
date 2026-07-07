@@ -39,11 +39,22 @@ main  ←  {type}/{issue-number}-{description}
 | 항목 | 규칙 |
 |------|------|
 | **base** | `main` |
-| **제목** | `{Type}: {한글 설명}` (squash 후 커밋 메시지, Type 첫 글자 대문자) |
+| **제목** | `{Type}: {한글 설명}` (Type 첫 글자 대문자) |
 | **본문** | [`pull_request_template.md`](pull_request_template.md) |
 | **이슈 연결** | `Closes #n` |
 | **스펙** | DB·인증·다파일 변경 시 `docs/specs/` 링크 |
-| **merge** | **Squash merge** 권장 |
+| **merge** | **Create a merge commit** — PR 브랜치 커밋 히스토리 유지 |
+
+### Merge 정책 (금지: Squash merge)
+
+| 허용 | 금지 |
+|------|------|
+| **Create a merge commit** | **Squash merge** |
+| Rebase merge (리뷰 후 rebase 정리한 경우만, 팀 합의) | Squash and merge |
+
+**Squash merge 금지 이유:** `main`과 feature 브랜치에 **동일 작업이 이중 히스토리**로 남고, author date·잔디·커밋 추적이 깨짐. PR merge 시 GitHub UI에서 **Squash and merge 버튼 사용 금지**.
+
+저장소 설정: Settings → General → Pull Requests → **Allow squash merging** 끄기.
 
 ## 코드 리뷰 — N 룰
 

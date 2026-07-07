@@ -35,7 +35,7 @@ alwaysApply: true
 
 - 변경 요약 + 검증 방법(`./gradlew test` 등)을 사용자에게 전달
 - 스펙이 있었다면 완료 기준 체크리스트 대조
-- 커밋·PR 제안 시: `.github/README.md` — `{Type}: {한글}` (Type 대문자), base `main`, Squash merge
+- 커밋·PR 제안 시: `.github/README.md` — `{Type}: {한글}` (Type 대문자), base `main`, **Create a merge commit** (Squash merge 금지)
 - 같은 실수가 2회 이상이면 `.cursor/rules/` 추가를 **제안** (자동 추가는 하지 않음)
 - 요청 밖 dead code를 발견하면 삭제하지 말고 언급만 한다
 
