@@ -81,7 +81,7 @@ main  ←  {type}/{issue-number}-{description}
 | **N4** | 선택 |
 | **N5** | 사소 |
 
-예: `N2: prod에서 ddl-auto validate인데 엔티티만 추가하면 기동 실패합니다.`
+예: `N2: prod에서 ddl-auto update인데 엔티티 컬럼 삭제 시 운영 DB에 orphan column이 남을 수 있습니다.`
 
 ## 라벨 · 마일스톤
 

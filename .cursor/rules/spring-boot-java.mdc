@@ -45,12 +45,44 @@ com.tripfit.tripfit
 - Enum: `{domain}/domain/`, `@Enumerated(EnumType.STRING)`
 - JPA `@ManyToOne` 등 연관관계 사용 가능 — 기본 `LAZY`
 - 테이블·컬럼: snake_case. 예약어 컬럼은 `@Column(name = "...")` 명시
+- **필드 설명:** Entity·enum·베이스 클래스의 **클래스·필드·enum 상수**마다 `@Schema(description = "...")` (springdoc). nullable·example·requiredMode는 ERD·스펙과 맞출 것. 상세: 아래 OpenAPI 섹션
 
 ```java
 // ✅ Controller는 DTO만 반환
 return TripResponse.from(trip);
 
 // ❌ Entity 직접 반환 금지
+```
+
+## OpenAPI @Schema (Entity · DTO · enum)
+
+springdoc OpenAPI 3 — `io.swagger.v3.oas.annotations.media.Schema`
+
+| 대상 | `@Schema` 위치 | 필수 |
+|------|----------------|------|
+| JPA `@Entity` / `@MappedSuperclass` | 클래스 + **모든 필드** | ✓ |
+| `{domain}/domain/` enum | enum + **각 상수** | ✓ |
+| `{domain}/dto/` record·class | record/class + **각 컴포넌트·필드** | ✓ (API 노출 DTO) |
+| `common/api/` envelope | record + 필드 | ✓ |
+| verifier 경계 record (`OAuthProfile` 등) | record + 필드 | ✓ |
+| Controller | `@Tag`, `@Operation(summary, description)` | API 추가 시 |
+
+**작성 규칙**
+
+- 설명은 **한국어**, 한 줄로 필드/컬럼 의미·제약 (nullable, UNIQUE, FK, wave 정책 등)
+- API 필드: `example`, `nullable`, `requiredMode = REQUIRED` (validation `@NotNull`/`@NotBlank`와 일치)
+- Entity는 Swagger UI에 직접 안 나와도 **코드·ERD SSOT**로 동일하게 작성
+- Javadoc 대신 `@Schema` 우선 (필드 의미). 메서드 흐름 주석은 기존 `//` 규칙 유지
+- SSOT: `docs/architecture/erd.md`, 해당 `docs/specs/` — 불일치 시 문서 먼저
+
+```java
+@Schema(description = "소셜 로그인 요청")
+public record LoginRequest(
+		@Schema(description = "소셜 제공자", example = "GOOGLE", requiredMode = Schema.RequiredMode.REQUIRED)
+		@NotNull SocialProvider provider,
+		@Schema(description = "GOOGLE/APPLE: id_token, KAKAO: access_token", requiredMode = Schema.RequiredMode.REQUIRED)
+		@NotBlank String token
+) {}
 ```
 
 ## Style
@@ -72,7 +104,7 @@ return TripResponse.from(trip);
 - 응답 envelope: `docs/architecture/api-response.md` (확정)
 - 요청 검증: Jakarta Validation (`@Valid`)
 - 예외: `@RestControllerAdvice` + `{ code, message }`
-- 문서: springdoc — `@Operation`, `@Tag`
+- 문서: springdoc — `@Tag`, `@Operation(summary, description)` + DTO·Entity `@Schema` (위 OpenAPI 섹션)
 
 ## Configuration
 
