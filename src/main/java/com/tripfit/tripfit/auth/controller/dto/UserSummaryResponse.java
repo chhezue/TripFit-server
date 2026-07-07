@@ -4,8 +4,7 @@ import com.tripfit.tripfit.user.domain.SocialProvider;
 
 public record UserSummaryResponse(
 		Long id,
-		String nickname,
-		String profileImageUrl,
+		String email,
 		SocialProvider provider
 ) {
 }

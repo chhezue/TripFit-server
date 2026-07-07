@@ -26,8 +26,7 @@ erDiagram
         bigint id PK
         string social_id
         string provider
-        string nickname
-        string profile_image_url
+        string email
         datetime created_at
         datetime updated_at
         datetime deleted_at
@@ -112,8 +111,7 @@ erDiagram
 | id | bigint | N | PK | 사용자 고유 ID |
 | social_id | varchar | N | | 소셜 서비스 제공 ID |
 | provider | varchar | N | | KAKAO, GOOGLE, APPLE 등 |
-| nickname | varchar | N | | 닉네임 |
-| profile_image_url | text | Y | | 프로필 이미지 URL |
+| email | varchar | Y | | 소셜 계정 이메일 (Apple relay 등). UNIQUE 아님 |
 | created_at | timestamptz | N | | 생성 시각 |
 | updated_at | timestamptz | N | | 수정 시각 |
 | deleted_at | timestamptz | Y | | Soft delete |

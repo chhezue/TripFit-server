@@ -6,7 +6,7 @@ import com.tripfit.tripfit.user.domain.SocialProvider;
 import com.tripfit.tripfit.auth.controller.dto.LoginResponse;
 import com.tripfit.tripfit.auth.controller.dto.RefreshResponse;
 import com.tripfit.tripfit.auth.controller.dto.UserSummaryResponse;
-import com.tripfit.tripfit.common.exception.ErrorCode;
+import com.tripfit.tripfit.auth.exception.AuthErrorCode;
 import com.tripfit.tripfit.common.exception.TripFitException;
 import com.tripfit.tripfit.user.repository.UserRepository;
 import com.tripfit.tripfit.auth.service.social.OAuthProfile;
@@ -17,8 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
-
-	private static final String DEFAULT_NICKNAME = "여행자";
 
 	private final SocialTokenVerifierRegistry verifierRegistry;
 	private final UserRepository userRepository;
@@ -59,7 +57,7 @@ public class AuthService {
 			String accessToken = jwtService.createAccessToken(refreshToken.getUserId());
 			return new RefreshResponse(accessToken, jwtService.getAccessExpirationSeconds());
 		} catch (TripFitException exception) {
-			if (exception.getErrorCode() == ErrorCode.AUTH_INVALID_REFRESH) {
+			if (exception.getErrorCode() == AuthErrorCode.AUTH_INVALID_REFRESH) {
 				refreshTokenService.deleteExpired(refreshTokenValue);
 			}
 			throw exception;
@@ -73,44 +71,18 @@ public class AuthService {
 
 	private User upsertUser(OAuthProfile profile) {
 		return userRepository.findByProviderAndSocialId(profile.provider(), profile.providerUserId())
-				.map(existing -> updateProfile(existing, profile))
-				.orElseGet(() -> createUser(profile));
+				.map(existing -> updateEmail(existing, profile))
+				.orElseGet(() -> userRepository.save(new User(profile.providerUserId(), profile.provider(), profile.email())));
 	}
 
-	private User createUser(OAuthProfile profile) {
-		String nickname = resolveNickname(profile);
-		User user = new User(
-				profile.providerUserId(),
-				profile.provider(),
-				nickname,
-				profile.profileImageUrl()
-		);
-		return userRepository.save(user);
-	}
-
-	private User updateProfile(User user, OAuthProfile profile) {
-		if (profile.nickname() != null && !profile.nickname().isBlank()) {
-			user.setNickname(profile.nickname());
-		}
-		if (profile.profileImageUrl() != null && !profile.profileImageUrl().isBlank()) {
-			user.setProfileImageUrl(profile.profileImageUrl());
+	private User updateEmail(User user, OAuthProfile profile) {
+		if (profile.email() != null && !profile.email().isBlank()) {
+			user.setEmail(profile.email());
 		}
 		return user;
 	}
 
-	private String resolveNickname(OAuthProfile profile) {
-		if (profile.nickname() != null && !profile.nickname().isBlank()) {
-			return profile.nickname();
-		}
-		return DEFAULT_NICKNAME;
-	}
-
 	private UserSummaryResponse toUserSummary(User user) {
-		return new UserSummaryResponse(
-				user.getId(),
-				user.getNickname(),
-				user.getProfileImageUrl(),
-				user.getProvider()
-		);
+		return new UserSummaryResponse(user.getId(), user.getEmail(), user.getProvider());
 	}
 }

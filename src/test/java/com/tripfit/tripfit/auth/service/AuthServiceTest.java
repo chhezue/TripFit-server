@@ -5,7 +5,7 @@ import com.tripfit.tripfit.user.domain.User;
 import com.tripfit.tripfit.user.domain.SocialProvider;
 import com.tripfit.tripfit.auth.controller.dto.LoginResponse;
 import com.tripfit.tripfit.auth.controller.dto.RefreshResponse;
-import com.tripfit.tripfit.common.exception.ErrorCode;
+import com.tripfit.tripfit.auth.exception.AuthErrorCode;
 import com.tripfit.tripfit.common.exception.TripFitException;
 import com.tripfit.tripfit.user.repository.UserRepository;
 import com.tripfit.tripfit.auth.service.social.OAuthProfile;
@@ -54,7 +54,7 @@ class AuthServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		oAuthProfile = new OAuthProfile(SocialProvider.GOOGLE, "google-sub", null, "홍길동", "https://img");
+		oAuthProfile = new OAuthProfile(SocialProvider.GOOGLE, "google-sub", "user@example.com");
 	}
 
 	@Test
@@ -64,27 +64,27 @@ class AuthServiceTest {
 		when(userRepository.findByProviderAndSocialId(SocialProvider.GOOGLE, "google-sub")).thenReturn(Optional.empty());
 		when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
 			User user = invocation.getArgument(0);
-			return new User(user.getSocialId(), user.getProvider(), user.getNickname(), user.getProfileImageUrl());
+			return new User(user.getSocialId(), user.getProvider(), user.getEmail());
 		});
 		when(jwtService.createAccessToken(any())).thenReturn("access-jwt");
-		when(jwtService.getAccessExpirationSeconds()).thenReturn(7200L);
+		when(jwtService.getAccessExpirationSeconds()).thenReturn(3600L);
 		when(refreshTokenService.create(any())).thenReturn(
-				new RefreshToken(1L, "refresh-token", UUID.randomUUID().toString(), LocalDateTime.now().plusDays(30))
+				new RefreshToken(1L, "refresh-token", UUID.randomUUID().toString(), LocalDateTime.now().plusDays(14))
 		);
 
 		LoginResponse response = authService.login(SocialProvider.GOOGLE, "id-token");
 
 		assertThat(response.accessToken()).isEqualTo("access-jwt");
 		assertThat(response.refreshToken()).isEqualTo("refresh-token");
-		assertThat(response.user().nickname()).isEqualTo("홍길동");
+		assertThat(response.user().email()).isEqualTo("user@example.com");
 	}
 
 	@Test
 	void refresh_returnsNewAccessToken() {
-		RefreshToken refreshToken = new RefreshToken(1L, "refresh-token", UUID.randomUUID().toString(), LocalDateTime.now().plusDays(30));
+		RefreshToken refreshToken = new RefreshToken(1L, "refresh-token", UUID.randomUUID().toString(), LocalDateTime.now().plusDays(14));
 		when(refreshTokenService.validate("refresh-token")).thenReturn(refreshToken);
 		when(jwtService.createAccessToken(1L)).thenReturn("new-access-jwt");
-		when(jwtService.getAccessExpirationSeconds()).thenReturn(7200L);
+		when(jwtService.getAccessExpirationSeconds()).thenReturn(3600L);
 
 		RefreshResponse response = authService.refresh("refresh-token");
 
@@ -93,13 +93,13 @@ class AuthServiceTest {
 
 	@Test
 	void refresh_invalidToken_throwsAndDeletesExpired() {
-		doThrow(new TripFitException(ErrorCode.AUTH_INVALID_REFRESH))
+		doThrow(new TripFitException(AuthErrorCode.AUTH_INVALID_REFRESH))
 				.when(refreshTokenService).validate("expired-token");
 
 		assertThatThrownBy(() -> authService.refresh("expired-token"))
 				.isInstanceOf(TripFitException.class)
 				.extracting(exception -> ((TripFitException) exception).getErrorCode())
-				.isEqualTo(ErrorCode.AUTH_INVALID_REFRESH);
+				.isEqualTo(AuthErrorCode.AUTH_INVALID_REFRESH);
 
 		verify(refreshTokenService).deleteExpired("expired-token");
 	}

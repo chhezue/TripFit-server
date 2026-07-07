@@ -2,7 +2,7 @@ package com.tripfit.tripfit.auth.service.social;
 
 import com.tripfit.tripfit.auth.config.OAuthProperties;
 import com.tripfit.tripfit.user.domain.SocialProvider;
-import com.tripfit.tripfit.common.exception.ErrorCode;
+import com.tripfit.tripfit.auth.exception.AuthErrorCode;
 import com.tripfit.tripfit.common.exception.TripFitException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -50,28 +50,22 @@ public class GoogleTokenVerifier implements SocialTokenVerifier {
 	public OAuthProfile verify(String token) {
 		List<String> allowedAudiences = oAuthProperties.getGoogleClientIds();
 		if (allowedAudiences.isEmpty()) {
-			throw new TripFitException(ErrorCode.AUTH_INVALID_TOKEN, "Google client ID is not configured");
+			throw new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN, "Google client ID is not configured");
 		}
 		try {
 			JWTClaimsSet claims = processToken(token);
 			if (!hasValidAudience(claims, allowedAudiences)) {
-				throw new TripFitException(ErrorCode.AUTH_INVALID_TOKEN);
+				throw new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN);
 			}
 			String subject = claims.getSubject();
 			if (subject == null || subject.isBlank()) {
-				throw new TripFitException(ErrorCode.AUTH_INVALID_TOKEN);
+				throw new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN);
 			}
-			return new OAuthProfile(
-					SocialProvider.GOOGLE,
-					subject,
-					claims.getStringClaim("email"),
-					claims.getStringClaim("name"),
-					claims.getStringClaim("picture")
-			);
+			return new OAuthProfile(SocialProvider.GOOGLE, subject, claims.getStringClaim("email"));
 		} catch (TripFitException exception) {
 			throw exception;
 		} catch (Exception exception) {
-			throw new TripFitException(ErrorCode.AUTH_INVALID_TOKEN);
+			throw new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN);
 		}
 	}
 

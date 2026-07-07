@@ -29,20 +29,16 @@ public class User extends SoftDeleteEntity {
 	@Column(nullable = false)
 	private SocialProvider provider;
 
-	@Column(nullable = false)
-	private String nickname;
-
-	@Column(columnDefinition = "TEXT")
-	private String profileImageUrl;
+	@Column
+	private String email;
 
 	protected User() {
 	}
 
-	public User(String socialId, SocialProvider provider, String nickname, String profileImageUrl) {
+	public User(String socialId, SocialProvider provider, String email) {
 		this.socialId = socialId;
 		this.provider = provider;
-		this.nickname = nickname;
-		this.profileImageUrl = profileImageUrl;
+		this.email = email;
 	}
 
 	public Long getId() {
@@ -65,19 +61,11 @@ public class User extends SoftDeleteEntity {
 		this.provider = provider;
 	}
 
-	public String getNickname() {
-		return nickname;
+	public String getEmail() {
+		return email;
 	}
 
-	public void setNickname(String nickname) {
-		this.nickname = nickname;
-	}
-
-	public String getProfileImageUrl() {
-		return profileImageUrl;
-	}
-
-	public void setProfileImageUrl(String profileImageUrl) {
-		this.profileImageUrl = profileImageUrl;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 }
