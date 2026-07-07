@@ -54,7 +54,13 @@ class AuthServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		oAuthProfile = new OAuthProfile(SocialProvider.GOOGLE, "google-sub", "user@example.com");
+		oAuthProfile = new OAuthProfile(
+				SocialProvider.GOOGLE,
+				"google-sub",
+				"user@example.com",
+				"홍길동",
+				"https://example.com/profile.png"
+		);
 	}
 
 	@Test
@@ -62,14 +68,11 @@ class AuthServiceTest {
 		when(verifierRegistry.getVerifier(SocialProvider.GOOGLE)).thenReturn(socialTokenVerifier);
 		when(socialTokenVerifier.verify("id-token")).thenReturn(oAuthProfile);
 		when(userRepository.findByProviderAndSocialId(SocialProvider.GOOGLE, "google-sub")).thenReturn(Optional.empty());
-		when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-			User user = invocation.getArgument(0);
-			return new User(user.getSocialId(), user.getProvider(), user.getEmail());
-		});
+		when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(jwtService.createAccessToken(any())).thenReturn("access-jwt");
-		when(jwtService.getAccessExpirationSeconds()).thenReturn(3600L);
+		when(jwtService.getAccessExpirationSeconds()).thenReturn(7200L);
 		when(refreshTokenService.create(any())).thenReturn(
-				new RefreshToken(1L, "refresh-token", UUID.randomUUID().toString(), LocalDateTime.now().plusDays(14))
+				new RefreshToken(1L, "refresh-token", UUID.randomUUID().toString(), LocalDateTime.now().plusDays(30))
 		);
 
 		LoginResponse response = authService.login(SocialProvider.GOOGLE, "id-token");
@@ -77,14 +80,41 @@ class AuthServiceTest {
 		assertThat(response.accessToken()).isEqualTo("access-jwt");
 		assertThat(response.refreshToken()).isEqualTo("refresh-token");
 		assertThat(response.user().email()).isEqualTo("user@example.com");
+		assertThat(response.user().nickname()).isEqualTo("홍길동");
+		assertThat(response.user().profileImageUrl()).isEqualTo("https://example.com/profile.png");
+	}
+
+	@Test
+	void login_whenNicknameMissing_storesNullWithoutFallback() {
+		OAuthProfile appleProfile = new OAuthProfile(
+				SocialProvider.APPLE,
+				"apple-sub",
+				"relay@privaterelay.appleid.com",
+				null,
+				null
+		);
+		when(verifierRegistry.getVerifier(SocialProvider.APPLE)).thenReturn(socialTokenVerifier);
+		when(socialTokenVerifier.verify("id-token")).thenReturn(appleProfile);
+		when(userRepository.findByProviderAndSocialId(SocialProvider.APPLE, "apple-sub")).thenReturn(Optional.empty());
+		when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(jwtService.createAccessToken(any())).thenReturn("access-jwt");
+		when(jwtService.getAccessExpirationSeconds()).thenReturn(7200L);
+		when(refreshTokenService.create(any())).thenReturn(
+				new RefreshToken(1L, "refresh-token", UUID.randomUUID().toString(), LocalDateTime.now().plusDays(30))
+		);
+
+		LoginResponse response = authService.login(SocialProvider.APPLE, "id-token");
+
+		assertThat(response.user().nickname()).isNull();
+		assertThat(response.user().profileImageUrl()).isNull();
 	}
 
 	@Test
 	void refresh_returnsNewAccessToken() {
-		RefreshToken refreshToken = new RefreshToken(1L, "refresh-token", UUID.randomUUID().toString(), LocalDateTime.now().plusDays(14));
+		RefreshToken refreshToken = new RefreshToken(1L, "refresh-token", UUID.randomUUID().toString(), LocalDateTime.now().plusDays(30));
 		when(refreshTokenService.validate("refresh-token")).thenReturn(refreshToken);
 		when(jwtService.createAccessToken(1L)).thenReturn("new-access-jwt");
-		when(jwtService.getAccessExpirationSeconds()).thenReturn(3600L);
+		when(jwtService.getAccessExpirationSeconds()).thenReturn(7200L);
 
 		RefreshResponse response = authService.refresh("refresh-token");
 

@@ -46,11 +46,24 @@ public class KakaoTokenVerifier implements SocialTokenVerifier {
 			}
 			String providerUserId = response.get("id").asText();
 			String email = null;
+			String nickname = null;
+			String profileImageUrl = null;
 			JsonNode kakaoAccount = response.get("kakao_account");
-			if (kakaoAccount != null && kakaoAccount.has("email")) {
-				email = kakaoAccount.get("email").asText();
+			if (kakaoAccount != null) {
+				if (kakaoAccount.has("email")) {
+					email = kakaoAccount.get("email").asText();
+				}
+				JsonNode profile = kakaoAccount.get("profile");
+				if (profile != null) {
+					if (profile.has("nickname")) {
+						nickname = profile.get("nickname").asText();
+					}
+					if (profile.has("profile_image_url")) {
+						profileImageUrl = profile.get("profile_image_url").asText();
+					}
+				}
 			}
-			return new OAuthProfile(SocialProvider.KAKAO, providerUserId, email);
+			return new OAuthProfile(SocialProvider.KAKAO, providerUserId, email, nickname, profileImageUrl);
 		} catch (TripFitException exception) {
 			// 비즈니스 검증에서 만든 인증 예외는 그대로 상위로 전달함
 			throw exception;

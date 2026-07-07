@@ -47,8 +47,14 @@ class AuthControllerTest {
 				new LoginResponse(
 						"access-jwt",
 						"refresh-token",
-						3600L,
-						new UserSummaryResponse(1L, "user@example.com", SocialProvider.GOOGLE)
+						7200L,
+						new UserSummaryResponse(
+								1L,
+								"user@example.com",
+								"홍길동",
+								"https://example.com/profile.png",
+								SocialProvider.GOOGLE
+						)
 				)
 		);
 
@@ -65,7 +71,7 @@ class AuthControllerTest {
 
 	@Test
 	void refresh_returnsAccessToken() throws Exception {
-		when(authService.refresh("refresh-token")).thenReturn(new RefreshResponse("new-access-jwt", 3600L));
+		when(authService.refresh("refresh-token")).thenReturn(new RefreshResponse("new-access-jwt", 7200L));
 
 		mockMvc.perform(post("/api/v1/auth/refresh")
 						.contentType(MediaType.APPLICATION_JSON)

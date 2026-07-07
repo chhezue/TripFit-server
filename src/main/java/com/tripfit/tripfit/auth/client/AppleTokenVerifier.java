@@ -65,7 +65,13 @@ public class AppleTokenVerifier implements SocialTokenVerifier {
 			if (subject == null || subject.isBlank()) {
 				throw new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN);
 			}
-			return new OAuthProfile(SocialProvider.APPLE, subject, claims.getStringClaim("email"));
+			return new OAuthProfile(
+					SocialProvider.APPLE,
+					subject,
+					claims.getStringClaim("email"),
+					null,
+					null
+			);
 		} catch (TripFitException exception) {
 			// 비즈니스 검증에서 만든 인증 예외는 그대로 상위로 전달함
 			throw exception;

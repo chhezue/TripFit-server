@@ -65,7 +65,13 @@ public class GoogleTokenVerifier implements SocialTokenVerifier {
 			if (subject == null || subject.isBlank()) {
 				throw new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN);
 			}
-			return new OAuthProfile(SocialProvider.GOOGLE, subject, claims.getStringClaim("email"));
+			return new OAuthProfile(
+					SocialProvider.GOOGLE,
+					subject,
+					claims.getStringClaim("email"),
+					claims.getStringClaim("name"),
+					claims.getStringClaim("picture")
+			);
 		} catch (TripFitException exception) {
 			// 비즈니스 검증에서 만든 인증 예외는 그대로 상위로 전달함
 			throw exception;

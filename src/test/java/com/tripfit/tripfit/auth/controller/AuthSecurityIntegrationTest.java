@@ -44,7 +44,13 @@ class AuthSecurityIntegrationTest {
 				.build();
 		accessToken = jwtService.createAccessToken(1L);
 		when(authService.getCurrentUser(1L)).thenReturn(
-				new UserSummaryResponse(1L, "user@example.com", SocialProvider.GOOGLE)
+				new UserSummaryResponse(
+						1L,
+						"user@example.com",
+						"홍길동",
+						"https://example.com/profile.png",
+						SocialProvider.GOOGLE
+				)
 		);
 	}
 
@@ -61,6 +67,8 @@ class AuthSecurityIntegrationTest {
 						.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.data.email").value("user@example.com"))
+				.andExpect(jsonPath("$.data.nickname").value("홍길동"))
+				.andExpect(jsonPath("$.data.profileImageUrl").value("https://example.com/profile.png"))
 				.andExpect(jsonPath("$.data.provider").value("GOOGLE"));
 	}
 

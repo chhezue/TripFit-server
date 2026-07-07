@@ -92,20 +92,44 @@ public class AuthService {
 	// 소셜 계정 기준으로 사용자를 조회하고 없으면 새로 생성함
 	private User upsertUser(OAuthProfile profile) {
 		return userRepository.findByProviderAndSocialId(profile.provider(), profile.providerUserId())
-				.map(existing -> updateEmail(existing, profile))
-				.orElseGet(() -> userRepository.save(new User(profile.providerUserId(), profile.provider(), profile.email())));
+				.map(existing -> updateFromProfile(existing, profile))
+				.orElseGet(() -> userRepository.save(createUserFromProfile(profile)));
 	}
 
-	// 소셜 프로필에 이메일이 있으면 기존 사용자 이메일을 최신 값으로 갱신함
-	private User updateEmail(User user, OAuthProfile profile) {
+	// 소셜 프로필로 신규 사용자 엔티티를 생성함
+	private User createUserFromProfile(OAuthProfile profile) {
+		return new User(
+				profile.providerUserId(),
+				profile.provider(),
+				profile.email(),
+				profile.nickname(),
+				profile.profileImageUrl()
+		);
+	}
+
+	// 재로그인 시 소셜 프로필에서 전달된 필드만 최신 값으로 갱신함
+	// profileImageUrl: A안 — provider URL passthrough (006). B안 S3 미러는 wave 4.
+	private User updateFromProfile(User user, OAuthProfile profile) {
 		if (profile.email() != null && !profile.email().isBlank()) {
 			user.setEmail(profile.email());
+		}
+		if (profile.nickname() != null && !profile.nickname().isBlank()) {
+			user.setNickname(profile.nickname());
+		}
+		if (profile.profileImageUrl() != null && !profile.profileImageUrl().isBlank()) {
+			user.setProfileImageUrl(profile.profileImageUrl());
 		}
 		return user;
 	}
 
 	// 인증 응답에 필요한 최소 사용자 정보를 DTO로 변환함
 	private UserSummaryResponse toUserSummary(User user) {
-		return new UserSummaryResponse(user.getId(), user.getEmail(), user.getProvider());
+		return new UserSummaryResponse(
+				user.getId(),
+				user.getEmail(),
+				user.getNickname(),
+				user.getProfileImageUrl(),
+				user.getProvider()
+		);
 	}
 }
