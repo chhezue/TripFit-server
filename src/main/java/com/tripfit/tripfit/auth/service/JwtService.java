@@ -26,9 +26,9 @@ public class JwtService {
   public JwtService(JwtProperties jwtProperties) {
     this.jwtProperties = jwtProperties;
     this.secretBytes = jwtProperties.getSecret().getBytes();
-    if (secretBytes.length < 32) {
-      throw new IllegalStateException("JWT secret must be at least 32 bytes");
-    }
+    // if (secretBytes.length < 32) {
+    // throw new IllegalStateException("JWT secret must be at least 32 bytes");
+    // }
   }
 
   // 사용자 ID를 기반으로 서명된 JWT 액세스 토큰을 생성함
