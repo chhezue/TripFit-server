@@ -49,6 +49,7 @@ alwaysApply: true
 
 - 변경 요약 + 검증 방법(`./gradlew test` 등)을 사용자에게 전달
 - 스펙이 있었다면 완료 기준 체크리스트 대조
+- **API 추가·변경 요청 시:** `docs/`(스펙·`architecture/`·관련 `decisions/`·`docs/README.md` 인덱스) 동기화 + **관련 GitHub 이슈** 본문·완료 기준 갱신 (`gh issue view`로 범위 확인 후 `gh issue edit`). 구현만 하고 문서·이슈를 빼먹지 않는다.
 - 커밋·PR 제안 시: `.github/README.md` — `{Type}: {한글}` (Type 대문자), base `main`, **Create a merge commit** (Squash merge 금지)
 - **커밋 요청 시:** 변경을 **주제별로 나눠 최대 3개** 커밋으로 만든다 (예: 구현 / 테스트 / 문서·하네스). 한 주제에 묶일 수 있으면 1개로 충분. 인위적 분할·의미 없는 쪼개기 금지
 - 같은 실수가 2회 이상이면 `.cursor/rules/` 추가를 **제안** (자동 추가는 하지 않음)

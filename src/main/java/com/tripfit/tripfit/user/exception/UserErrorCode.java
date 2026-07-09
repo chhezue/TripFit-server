@@ -1,0 +1,35 @@
+package com.tripfit.tripfit.user.exception;
+
+import com.tripfit.tripfit.common.exception.ErrorCode;
+import org.springframework.http.HttpStatus;
+
+public enum UserErrorCode implements ErrorCode {
+  PROFILE_NAME_REQUIRED(HttpStatus.FORBIDDEN, "PROFILE_NAME_REQUIRED", "성·이름 입력이 필요합니다.");
+
+  private final HttpStatus httpStatus;
+
+  private final String code;
+
+  private final String message;
+
+  UserErrorCode(HttpStatus httpStatus, String code, String message) {
+    this.httpStatus = httpStatus;
+    this.code = code;
+    this.message = message;
+  }
+
+  @Override
+  public HttpStatus getHttpStatus() {
+    return httpStatus;
+  }
+
+  @Override
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  public String getMessage() {
+    return message;
+  }
+}

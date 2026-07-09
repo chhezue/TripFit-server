@@ -44,11 +44,18 @@ NEXT_PUBLIC_API_BASE_URL=https://api.tripfit.online
 
 ## 빠른 시작
 
-### 로컬 (단일 호스트)
+### 로컬 (MySQL Docker + bootRun)
 
 ```bash
 cp .env.example .env
-docker compose up -d --build
+docker compose up -d              # MySQL만
+./gradlew bootRun                 # Spring (localhost:8080, .env 로드)
+```
+
+Spring까지 Docker로 검증할 때만:
+
+```bash
+docker compose --profile app up -d --build
 ./scripts/verify-deploy.sh
 ```
 
@@ -111,6 +118,8 @@ curl -fsSI https://api.tripfit.online/api/v1/...   # API 구현 후
 
 ## 환경 변수
 
+### EC2 `deploy/app/.env` (인프라·비밀 제외)
+
 | 변수 | app/.env | 설명 |
 |------|----------|------|
 | `MYSQL_HOST` | ✅ | EC2 B private IP |
@@ -120,9 +129,32 @@ curl -fsSI https://api.tripfit.online/api/v1/...   # API 구현 후
 
 `FRONTEND_IMAGE` **사용하지 않음** — 프론트는 Vercel.
 
+### GitHub Actions Secrets (인증·OAuth — push 시 자동 주입)
+
+**`main` push → CI/CD deploy** 단계에서 아래 Secrets를 EC2 `docker compose`에 전달한다.  
+등록만 하면 **EC2 SSH로 `.env`를 수정할 필요 없이** push마다 앱 컨테이너에 env가 적용된다.
+
+| Secret | 필수 | 설명 |
+|--------|------|------|
+| `JWT_SECRET` | ✅ | Access JWT 서명 키 (256bit+ random) |
+| `GOOGLE_CLIENT_ID` | | Google web client ID (`aud` 검증) |
+| `GOOGLE_CLIENT_ID_IOS` | | Google iOS client ID |
+| `GOOGLE_CLIENT_ID_ANDROID` | | Google Android client ID |
+| `APPLE_CLIENT_ID` | | Apple Services ID (`aud` 검증) |
+
+등록 위치: GitHub repo → **Settings → Secrets and variables → Actions**
+
+기존 deploy Secrets(`SPRING_DATASOURCE_*`, `EC2_*`, `GHCR_PAT` 등)와 함께 사용한다.  
+`deploy/app/docker-compose.yml`의 `app.environment`가 위 변수를 Spring Boot 컨테이너로 넘긴다.
+
+TTL 기본값(스펙 SSOT): access **7200초(2h)**, refresh **30일** — `JWT_ACCESS_EXPIRATION`, `JWT_REFRESH_EXPIRATION_DAYS`로 override 가능(compose 기본값 동일).
+
+로컬: 루트 `.env` 또는 `deploy/app/.env.example` 참고. 상세 스펙: `docs/specs/auth-social-login.md`
+
 ## CI/CD
 
-`.github/workflows/ci-cd.yml` — `main` push → GHCR push → EC2 A deploy (app + nginx + certbot)
+`.github/workflows/ci-cd.yml` — `main` push → GHCR push → EC2 A deploy (app + nginx + certbot)  
+deploy 시 **GitHub Secrets의 JWT·OAuth 값이 app 컨테이너에 자동 주입**된다.
 
 ## 검증 스크립트
 
