@@ -72,6 +72,7 @@ firstName 또는 lastName null?
 
 - [ ] Google Calendar OAuth 연동 API·토큰 저장
 - [ ] `user_condition` CRUD (마이페이지·여행방에서도 입력 가능)
+- [ ] 마이페이지 이름 수정 — [`user-my-page.md`](user-my-page.md) (`PATCH /users/me/my-page`)
 - [ ] 네이버 캘린더
 
 ## API
@@ -208,3 +209,4 @@ firstName 또는 lastName null?
 | 날짜 | 변경 |
 |------|------|
 | 2026-07-08 | Approved — boolean 3개 + 이름, PATCH onboarding |
+| 2026-07-09 | 마이페이지 이름 수정은 [`user-my-page.md`](user-my-page.md)로 분리 |
