@@ -3,13 +3,12 @@ package com.tripfit.tripfit.auth.service;
 import com.tripfit.tripfit.auth.config.JwtProperties;
 import com.tripfit.tripfit.auth.domain.RefreshToken;
 import com.tripfit.tripfit.auth.exception.AuthErrorCode;
-import com.tripfit.tripfit.common.exception.TripFitException;
 import com.tripfit.tripfit.auth.repository.RefreshTokenRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.tripfit.tripfit.common.exception.TripFitException;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RefreshTokenService {
@@ -18,8 +17,8 @@ public class RefreshTokenService {
 
   private final JwtProperties jwtProperties;
 
-  public RefreshTokenService(RefreshTokenRepository refreshTokenRepository,
-      JwtProperties jwtProperties) {
+  public RefreshTokenService(
+      RefreshTokenRepository refreshTokenRepository, JwtProperties jwtProperties) {
     this.refreshTokenRepository = refreshTokenRepository;
     this.jwtProperties = jwtProperties;
   }
@@ -40,8 +39,10 @@ public class RefreshTokenService {
   // 리프레시 토큰의 존재 여부와 사용 가능 상태를 검증함
   @Transactional(readOnly = true)
   public RefreshToken validate(String tokenValue) {
-    RefreshToken refreshToken = refreshTokenRepository.findByToken(tokenValue)
-        .orElseThrow(() -> new TripFitException(AuthErrorCode.AUTH_INVALID_REFRESH));
+    RefreshToken refreshToken =
+        refreshTokenRepository
+            .findByToken(tokenValue)
+            .orElseThrow(() -> new TripFitException(AuthErrorCode.AUTH_INVALID_REFRESH));
     if (refreshToken.isRevoked() || refreshToken.isExpired()) {
       throw new TripFitException(AuthErrorCode.AUTH_INVALID_REFRESH);
     }
@@ -57,10 +58,13 @@ public class RefreshTokenService {
   // 만료된 리프레시 토큰만 선별해서 저장소에서 정리함
   @Transactional
   public void deleteExpired(String tokenValue) {
-    refreshTokenRepository.findByToken(tokenValue).ifPresent(refreshToken -> {
-      if (refreshToken.isExpired()) {
-        refreshTokenRepository.delete(refreshToken);
-      }
-    });
+    refreshTokenRepository
+        .findByToken(tokenValue)
+        .ifPresent(
+            refreshToken -> {
+              if (refreshToken.isExpired()) {
+                refreshTokenRepository.delete(refreshToken);
+              }
+            });
   }
 }

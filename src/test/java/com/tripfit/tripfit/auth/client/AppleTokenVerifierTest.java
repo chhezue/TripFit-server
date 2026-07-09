@@ -1,12 +1,12 @@
 package com.tripfit.tripfit.auth.client;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.tripfit.tripfit.auth.config.OAuthProperties;
 import com.tripfit.tripfit.auth.exception.AuthErrorCode;
 import com.tripfit.tripfit.common.exception.TripFitException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AppleTokenVerifierTest {
 

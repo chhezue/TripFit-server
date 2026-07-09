@@ -1,13 +1,12 @@
 package com.tripfit.tripfit.auth.client;
 
-import com.tripfit.tripfit.user.domain.SocialProvider;
 import com.tripfit.tripfit.auth.exception.AuthErrorCode;
 import com.tripfit.tripfit.common.exception.TripFitException;
-import org.springframework.stereotype.Component;
-
+import com.tripfit.tripfit.user.domain.SocialProvider;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class SocialTokenVerifierRegistry {

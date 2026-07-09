@@ -9,13 +9,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(
-    name = "refresh_token",
-    uniqueConstraints = @UniqueConstraint(columnNames = "token"))
+@Table(name = "refresh_token", uniqueConstraints = @UniqueConstraint(columnNames = "token"))
 @Schema(description = "리프레시 토큰 (opaque). wave 1: logout 시 row 삭제. wave 4: RTR 예정")
 public class RefreshToken extends BaseTimeEntity {
 
@@ -28,17 +31,20 @@ public class RefreshToken extends BaseTimeEntity {
   @Column(name = "user_id", nullable = false)
   private Long userId;
 
-  @Schema(description = "opaque refresh token 값 (UUID 등). UNIQUE",
+  @Schema(
+      description = "opaque refresh token 값 (UUID 등). UNIQUE",
       example = "550e8400-e29b-41d4-a716-446655440000")
   @Column(nullable = false, length = 255)
   private String token;
 
-  @Schema(description = "login 체인 식별 UUID. wave 4 RTR reuse detection용",
+  @Schema(
+      description = "login 체인 식별 UUID. wave 4 RTR reuse detection용",
       example = "550e8400-e29b-41d4-a716-446655440001")
   @Column(name = "family_id", nullable = false, length = 36)
   private String familyId;
 
   @Schema(description = "폐기 시각. wave 4 rotation용. wave 1 logout은 row delete", nullable = true)
+  @Setter
   @Column(name = "revoked_at")
   private LocalDateTime revokedAt;
 
@@ -46,41 +52,11 @@ public class RefreshToken extends BaseTimeEntity {
   @Column(name = "expires_at", nullable = false)
   private LocalDateTime expiresAt;
 
-  protected RefreshToken() {}
-
   public RefreshToken(Long userId, String token, String familyId, LocalDateTime expiresAt) {
     this.userId = userId;
     this.token = token;
     this.familyId = familyId;
     this.expiresAt = expiresAt;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public Long getUserId() {
-    return userId;
-  }
-
-  public String getToken() {
-    return token;
-  }
-
-  public String getFamilyId() {
-    return familyId;
-  }
-
-  public LocalDateTime getRevokedAt() {
-    return revokedAt;
-  }
-
-  public void setRevokedAt(LocalDateTime revokedAt) {
-    this.revokedAt = revokedAt;
-  }
-
-  public LocalDateTime getExpiresAt() {
-    return expiresAt;
   }
 
   public boolean isExpired() {

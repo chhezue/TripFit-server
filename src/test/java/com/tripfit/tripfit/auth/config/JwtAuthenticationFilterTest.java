@@ -1,5 +1,10 @@
 package com.tripfit.tripfit.auth.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tripfit.tripfit.auth.client.TokenRevocationChecker;
 import com.tripfit.tripfit.auth.exception.AuthErrorCode;
@@ -15,11 +20,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
@@ -44,10 +44,9 @@ class JwtAuthenticationFilterTest {
     jwtProperties.setAccessExpirationSeconds(3600);
     jwtService = new JwtService(jwtProperties);
     objectMapper = new ObjectMapper();
-    filter = new JwtAuthenticationFilter(
-        jwtService,
-        tokenRevocationChecker,
-        new AuthErrorResponseWriter());
+    filter =
+        new JwtAuthenticationFilter(
+            jwtService, tokenRevocationChecker, new AuthErrorResponseWriter());
   }
 
   @Test

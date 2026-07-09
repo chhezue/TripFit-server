@@ -1,9 +1,9 @@
 package com.tripfit.tripfit.auth.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.tripfit.tripfit.user.domain.SocialProvider;
 import com.tripfit.tripfit.auth.exception.AuthErrorCode;
 import com.tripfit.tripfit.common.exception.TripFitException;
+import com.tripfit.tripfit.user.domain.SocialProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
@@ -31,14 +31,18 @@ public class KakaoTokenVerifier implements SocialTokenVerifier {
   public OAuthProfile verify(String token) {
     try {
       // 1. 카카오 사용자 정보 API를 호출해 토큰 유효성을 확인함
-      JsonNode response = restClient.get()
-          .uri(KAKAO_USER_ME_URL)
-          .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-          .retrieve()
-          .onStatus(HttpStatusCode::isError, (request, clientResponse) -> {
-            throw new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN);
-          })
-          .body(JsonNode.class);
+      JsonNode response =
+          restClient
+              .get()
+              .uri(KAKAO_USER_ME_URL)
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+              .retrieve()
+              .onStatus(
+                  HttpStatusCode::isError,
+                  (request, clientResponse) -> {
+                    throw new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN);
+                  })
+              .body(JsonNode.class);
 
       // 2. 응답 본문에서 필수 식별자와 선택 이메일을 추출함
       if (response == null || !response.has("id")) {
@@ -63,8 +67,8 @@ public class KakaoTokenVerifier implements SocialTokenVerifier {
           }
         }
       }
-      return new OAuthProfile(SocialProvider.KAKAO, providerUserId, email, nickname,
-          profileImageUrl);
+      return new OAuthProfile(
+          SocialProvider.KAKAO, providerUserId, email, nickname, profileImageUrl);
     } catch (TripFitException exception) {
       // 비즈니스 검증에서 만든 인증 예외는 그대로 상위로 전달함
       throw exception;

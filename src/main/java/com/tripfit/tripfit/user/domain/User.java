@@ -11,7 +11,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(
     name = "user",
@@ -33,23 +40,46 @@ public class User extends SoftDeleteEntity {
   @Column(nullable = false)
   private SocialProvider provider;
 
-  @Schema(description = "소셜 계정 이메일. Apple relay·미제공 시 null. UNIQUE·식별 키 아님", nullable = true,
+  @Schema(
+      description = "소셜 계정 이메일. Apple relay·미제공 시 null. UNIQUE·식별 키 아님",
+      nullable = true,
       example = "user@example.com")
   @Column
   private String email;
 
-  @Schema(description = "소셜 provider 표시명 (prefill·참고용). 미제공 시 null — fallback 없음", nullable = true,
+  @Schema(description = "유저 입력 이름 (필수, PATCH profile). 미입력 시 null", nullable = true, example = "길동")
+  @Column(name = "first_name")
+  private String firstName;
+
+  @Schema(description = "유저 입력 성 (필수, PATCH profile). 미입력 시 null", nullable = true, example = "홍")
+  @Column(name = "last_name")
+  private String lastName;
+
+  @Schema(
+      description = "소셜 provider 표시명 (prefill·참고용). 미제공 시 null — fallback 없음",
+      nullable = true,
       example = "홍길동")
   @Column
   private String nickname;
 
   @Schema(
       description = "프로필 이미지 URL. wave 1(A안): provider CDN URL 그대로. wave 4(B안): TripFit S3 URL 예정",
-      nullable = true, example = "https://lh3.googleusercontent.com/a/example")
-  @Column
+      nullable = true,
+      example = "https://lh3.googleusercontent.com/a/example")
+  @Column(name = "profile_image_url")
   private String profileImageUrl;
 
-  protected User() {}
+  @Schema(description = "Google Calendar OAuth 연동 여부", example = "false")
+  @Column(name = "is_google_calendar_connected", nullable = false)
+  private boolean isGoogleCalendarConnected;
+
+  @Schema(description = "유저의 Schedule(근무·연차 정보) 저장 여부", example = "false")
+  @Column(name = "is_schedule_registered", nullable = false)
+  private boolean isScheduleRegistered;
+
+  @Schema(description = "건너뛰기 가능한 온보딩(캘린더/일정 입력) 전체 완료 여부", example = "false")
+  @Column(name = "is_optional_onboarding_completed", nullable = false)
+  private boolean isOptionalOnboardingCompleted;
 
   public User(
       String socialId,
@@ -62,49 +92,13 @@ public class User extends SoftDeleteEntity {
     this.email = email;
     this.nickname = nickname;
     this.profileImageUrl = profileImageUrl;
+    this.isGoogleCalendarConnected = false;
+    this.isScheduleRegistered = false;
+    this.isOptionalOnboardingCompleted = false;
   }
 
-  public Long getId() {
-    return id;
-  }
-
-  public String getSocialId() {
-    return socialId;
-  }
-
-  public void setSocialId(String socialId) {
-    this.socialId = socialId;
-  }
-
-  public SocialProvider getProvider() {
-    return provider;
-  }
-
-  public void setProvider(SocialProvider provider) {
-    this.provider = provider;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public String getNickname() {
-    return nickname;
-  }
-
-  public void setNickname(String nickname) {
-    this.nickname = nickname;
-  }
-
-  public String getProfileImageUrl() {
-    return profileImageUrl;
-  }
-
-  public void setProfileImageUrl(String profileImageUrl) {
-    this.profileImageUrl = profileImageUrl;
+  // 성·이름이 모두 입력됐는지 확인함 (온보딩 필수 프로필 완료)
+  public boolean hasProfileNameComplete() {
+    return firstName != null && !firstName.isBlank() && lastName != null && !lastName.isBlank();
   }
 }

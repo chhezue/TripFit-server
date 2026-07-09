@@ -15,13 +15,17 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
 import java.time.LocalDate;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(
-    name = "trip",
-    uniqueConstraints = @UniqueConstraint(columnNames = "invite_code"))
+@Table(name = "trip", uniqueConstraints = @UniqueConstraint(columnNames = "invite_code"))
 @Schema(description = "여행방. 방장이 생성·초대·일정 확정")
 public class Trip extends SoftDeleteEntity {
 
@@ -72,8 +76,6 @@ public class Trip extends SoftDeleteEntity {
   @Column
   private LocalDate confirmedEndDate;
 
-  protected Trip() {}
-
   public Trip(
       User owner,
       String name,
@@ -91,89 +93,5 @@ public class Trip extends SoftDeleteEntity {
     this.targetMemberCount = targetMemberCount;
     this.inviteCode = inviteCode;
     this.status = status;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public User getOwner() {
-    return owner;
-  }
-
-  public void setOwner(User owner) {
-    this.owner = owner;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public LocalDate getStartRange() {
-    return startRange;
-  }
-
-  public void setStartRange(LocalDate startRange) {
-    this.startRange = startRange;
-  }
-
-  public LocalDate getEndRange() {
-    return endRange;
-  }
-
-  public void setEndRange(LocalDate endRange) {
-    this.endRange = endRange;
-  }
-
-  public Integer getDurationDays() {
-    return durationDays;
-  }
-
-  public void setDurationDays(Integer durationDays) {
-    this.durationDays = durationDays;
-  }
-
-  public Integer getTargetMemberCount() {
-    return targetMemberCount;
-  }
-
-  public void setTargetMemberCount(Integer targetMemberCount) {
-    this.targetMemberCount = targetMemberCount;
-  }
-
-  public String getInviteCode() {
-    return inviteCode;
-  }
-
-  public void setInviteCode(String inviteCode) {
-    this.inviteCode = inviteCode;
-  }
-
-  public TripStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(TripStatus status) {
-    this.status = status;
-  }
-
-  public LocalDate getConfirmedStartDate() {
-    return confirmedStartDate;
-  }
-
-  public void setConfirmedStartDate(LocalDate confirmedStartDate) {
-    this.confirmedStartDate = confirmedStartDate;
-  }
-
-  public LocalDate getConfirmedEndDate() {
-    return confirmedEndDate;
-  }
-
-  public void setConfirmedEndDate(LocalDate confirmedEndDate) {
-    this.confirmedEndDate = confirmedEndDate;
   }
 }

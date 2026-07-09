@@ -10,5 +10,4 @@ class TripfitApplicationTests {
 
   @Test
   void contextLoads() {}
-
 }

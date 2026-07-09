@@ -9,5 +9,4 @@ public class TripfitApplication {
   public static void main(String[] args) {
     SpringApplication.run(TripfitApplication.class, args);
   }
-
 }

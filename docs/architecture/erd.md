@@ -32,7 +32,7 @@ erDiagram
         string nickname
         string profile_image_url
         boolean is_google_calendar_connected
-        boolean is_pre_schedule_registered
+        boolean is_schedule_registered
         boolean is_optional_onboarding_completed
         datetime created_at
         datetime updated_at
@@ -124,7 +124,7 @@ erDiagram
 | nickname | varchar | Y | | 소셜 provider 표시명 (prefill). **fallback 없음** |
 | profile_image_url | varchar | Y | | **wave 1(A안):** provider CDN URL. **wave 4(B안):** TripFit S3 — [`006`](../decisions/006-profile-image-url-storage.md) |
 | is_google_calendar_connected | boolean | N | | default `false`. Google Calendar OAuth 연동 시만 `true` |
-| is_pre_schedule_registered | boolean | N | | default `false`. `user_condition` 저장 시만 `true` |
+| is_schedule_registered | boolean | N | | default `false`. `user_condition` 저장 시만 `true` |
 | is_optional_onboarding_completed | boolean | N | | default `false`. 선택 온보딩 전체 완료 — [`user-onboarding.md`](../specs/user-onboarding.md) |
 | created_at | timestamptz | N | | 생성 시각 |
 | updated_at | timestamptz | N | | 수정 시각 |

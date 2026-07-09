@@ -15,9 +15,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(
     name = "trip_member",
@@ -55,58 +61,12 @@ public class TripMember extends BaseTimeEntity {
   @Column(nullable = false)
   private LocalDateTime joinedAt;
 
-  protected TripMember() {}
-
-  public TripMember(Trip trip, User user, TripMemberRole role, TripMemberStatus status,
-      LocalDateTime joinedAt) {
+  public TripMember(
+      Trip trip, User user, TripMemberRole role, TripMemberStatus status, LocalDateTime joinedAt) {
     this.trip = trip;
     this.user = user;
     this.role = role;
     this.status = status;
-    this.joinedAt = joinedAt;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public Trip getTrip() {
-    return trip;
-  }
-
-  public void setTrip(Trip trip) {
-    this.trip = trip;
-  }
-
-  public User getUser() {
-    return user;
-  }
-
-  public void setUser(User user) {
-    this.user = user;
-  }
-
-  public TripMemberRole getRole() {
-    return role;
-  }
-
-  public void setRole(TripMemberRole role) {
-    this.role = role;
-  }
-
-  public TripMemberStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(TripMemberStatus status) {
-    this.status = status;
-  }
-
-  public LocalDateTime getJoinedAt() {
-    return joinedAt;
-  }
-
-  public void setJoinedAt(LocalDateTime joinedAt) {
     this.joinedAt = joinedAt;
   }
 }

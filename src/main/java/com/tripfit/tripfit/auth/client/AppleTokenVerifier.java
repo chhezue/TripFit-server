@@ -1,26 +1,25 @@
 package com.tripfit.tripfit.auth.client;
 
-import com.tripfit.tripfit.auth.config.OAuthProperties;
-import com.tripfit.tripfit.user.domain.SocialProvider;
-import com.tripfit.tripfit.auth.exception.AuthErrorCode;
-import com.tripfit.tripfit.common.exception.TripFitException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.RemoteJWKSet;
+import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
-import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-import org.springframework.stereotype.Component;
-
+import com.tripfit.tripfit.auth.config.OAuthProperties;
+import com.tripfit.tripfit.auth.exception.AuthErrorCode;
+import com.tripfit.tripfit.common.exception.TripFitException;
+import com.tripfit.tripfit.user.domain.SocialProvider;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AppleTokenVerifier implements SocialTokenVerifier {
@@ -53,8 +52,8 @@ public class AppleTokenVerifier implements SocialTokenVerifier {
     // 1. 애플 서비스 ID가 설정돼 있는지 확인함
     String appleClientId = oAuthProperties.getAppleClientId();
     if (appleClientId == null || appleClientId.isBlank()) {
-      throw new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN,
-          "Apple client ID is not configured");
+      throw new TripFitException(
+          AuthErrorCode.AUTH_INVALID_TOKEN, "Apple client ID is not configured");
     }
     try {
       // 2. 토큰 서명을 검증하고 클레임을 파싱함
@@ -67,11 +66,7 @@ public class AppleTokenVerifier implements SocialTokenVerifier {
         throw new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN);
       }
       return new OAuthProfile(
-          SocialProvider.APPLE,
-          subject,
-          claims.getStringClaim("email"),
-          null,
-          null);
+          SocialProvider.APPLE, subject, claims.getStringClaim("email"), null, null);
     } catch (TripFitException exception) {
       // 비즈니스 검증에서 만든 인증 예외는 그대로 상위로 전달함
       throw exception;
@@ -86,9 +81,8 @@ public class AppleTokenVerifier implements SocialTokenVerifier {
       throws ParseException, JOSEException, BadJOSEException, java.net.MalformedURLException {
     ConfigurableJWTProcessor<SecurityContext> processor = new DefaultJWTProcessor<>();
     JWKSource<SecurityContext> keySource = new RemoteJWKSet<>(APPLE_JWK_URL);
-    JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(
-        JWSAlgorithm.RS256,
-        keySource);
+    JWSKeySelector<SecurityContext> keySelector =
+        new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, keySource);
     processor.setJWSKeySelector(keySelector);
     return processor.process(token, null);
   }

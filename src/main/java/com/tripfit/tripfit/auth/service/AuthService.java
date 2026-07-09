@@ -1,17 +1,18 @@
 package com.tripfit.tripfit.auth.service;
 
-import com.tripfit.tripfit.auth.domain.RefreshToken;
-import com.tripfit.tripfit.user.domain.User;
-import com.tripfit.tripfit.user.domain.SocialProvider;
-import com.tripfit.tripfit.auth.dto.LoginResponse;
-import com.tripfit.tripfit.auth.dto.RefreshResponse;
-import com.tripfit.tripfit.auth.dto.UserSummaryResponse;
-import com.tripfit.tripfit.auth.exception.AuthErrorCode;
-import com.tripfit.tripfit.common.exception.TripFitException;
-import com.tripfit.tripfit.user.repository.UserRepository;
 import com.tripfit.tripfit.auth.client.OAuthProfile;
 import com.tripfit.tripfit.auth.client.SocialTokenVerifier;
 import com.tripfit.tripfit.auth.client.SocialTokenVerifierRegistry;
+import com.tripfit.tripfit.auth.domain.RefreshToken;
+import com.tripfit.tripfit.auth.dto.LoginResponse;
+import com.tripfit.tripfit.auth.dto.RefreshResponse;
+import com.tripfit.tripfit.auth.exception.AuthErrorCode;
+import com.tripfit.tripfit.common.exception.TripFitException;
+import com.tripfit.tripfit.user.domain.SocialProvider;
+import com.tripfit.tripfit.user.domain.User;
+import com.tripfit.tripfit.user.dto.UserSummaryResponse;
+import com.tripfit.tripfit.user.repository.UserRepository;
+import com.tripfit.tripfit.user.service.UserSummaryMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,7 +55,7 @@ public class AuthService {
         accessToken,
         refreshToken.getToken(),
         jwtService.getAccessExpirationSeconds(),
-        toUserSummary(user));
+        UserSummaryMapper.toSummary(user));
   }
 
   // 리프레시 토큰으로 새로운 액세스 토큰을 재발급함
@@ -85,14 +86,17 @@ public class AuthService {
   // JWT에 담긴 userId로 현재 로그인 사용자 프로필을 조회함
   @Transactional(readOnly = true)
   public UserSummaryResponse getCurrentUser(Long userId) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new TripFitException(AuthErrorCode.AUTH_FORBIDDEN));
-    return toUserSummary(user);
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new TripFitException(AuthErrorCode.AUTH_FORBIDDEN));
+    return UserSummaryMapper.toSummary(user);
   }
 
   // 소셜 계정 기준으로 사용자를 조회하고 없으면 새로 생성함
   private User upsertUser(OAuthProfile profile) {
-    return userRepository.findByProviderAndSocialId(profile.provider(), profile.providerUserId())
+    return userRepository
+        .findByProviderAndSocialId(profile.provider(), profile.providerUserId())
         .map(existing -> updateFromProfile(existing, profile))
         .orElseGet(() -> userRepository.save(createUserFromProfile(profile)));
   }
@@ -107,7 +111,7 @@ public class AuthService {
         profile.profileImageUrl());
   }
 
-  // 재로그인 시 소셜 프로필에서 전달된 필드만 최신 값으로 갱신함
+  // 재로그인 시 소셜 프로필에서 전달된 필드만 최신 값으로 갱신함 (first/last는 PATCH profile 전용)
   // profileImageUrl: A안 — provider URL passthrough (006). B안 S3 미러는 wave 4.
   private User updateFromProfile(User user, OAuthProfile profile) {
     if (profile.email() != null && !profile.email().isBlank()) {
@@ -120,15 +124,5 @@ public class AuthService {
       user.setProfileImageUrl(profile.profileImageUrl());
     }
     return user;
-  }
-
-  // 인증 응답에 필요한 최소 사용자 정보를 DTO로 변환함
-  private UserSummaryResponse toUserSummary(User user) {
-    return new UserSummaryResponse(
-        user.getId(),
-        user.getEmail(),
-        user.getNickname(),
-        user.getProfileImageUrl(),
-        user.getProvider());
   }
 }

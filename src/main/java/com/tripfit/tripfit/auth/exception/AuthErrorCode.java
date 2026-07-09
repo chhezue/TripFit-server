@@ -4,7 +4,6 @@ import com.tripfit.tripfit.common.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 public enum AuthErrorCode implements ErrorCode {
-
   AUTH_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "AUTH_INVALID_REQUEST",
       "잘못된 인증 요청입니다."), AUTH_INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_INVALID_TOKEN",
           "유효하지 않은 소셜 로그인 토큰입니다."), AUTH_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH_EXPIRED",

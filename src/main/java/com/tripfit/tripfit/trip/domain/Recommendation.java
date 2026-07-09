@@ -11,12 +11,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "recommendation")
 @EntityListeners(AuditingEntityListener.class)
@@ -63,8 +69,6 @@ public class Recommendation {
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  protected Recommendation() {}
-
   public Recommendation(
       Trip trip,
       Integer rank,
@@ -80,69 +84,5 @@ public class Recommendation {
     this.reason = reason;
     this.riskNote = riskNote;
     this.score = score;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public Trip getTrip() {
-    return trip;
-  }
-
-  public void setTrip(Trip trip) {
-    this.trip = trip;
-  }
-
-  public Integer getRank() {
-    return rank;
-  }
-
-  public void setRank(Integer rank) {
-    this.rank = rank;
-  }
-
-  public LocalDate getStartDate() {
-    return startDate;
-  }
-
-  public void setStartDate(LocalDate startDate) {
-    this.startDate = startDate;
-  }
-
-  public LocalDate getEndDate() {
-    return endDate;
-  }
-
-  public void setEndDate(LocalDate endDate) {
-    this.endDate = endDate;
-  }
-
-  public String getReason() {
-    return reason;
-  }
-
-  public void setReason(String reason) {
-    this.reason = reason;
-  }
-
-  public String getRiskNote() {
-    return riskNote;
-  }
-
-  public void setRiskNote(String riskNote) {
-    this.riskNote = riskNote;
-  }
-
-  public Double getScore() {
-    return score;
-  }
-
-  public void setScore(Double score) {
-    this.score = score;
-  }
-
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
   }
 }

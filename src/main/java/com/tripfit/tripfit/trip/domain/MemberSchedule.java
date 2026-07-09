@@ -14,9 +14,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
 import java.time.LocalDate;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(
     name = "member_schedule",
@@ -54,8 +60,6 @@ public class MemberSchedule extends BaseTimeEntity {
   @Column
   private String note;
 
-  protected MemberSchedule() {}
-
   public MemberSchedule(
       TripMember tripMember,
       LocalDate scheduleDate,
@@ -66,50 +70,6 @@ public class MemberSchedule extends BaseTimeEntity {
     this.scheduleDate = scheduleDate;
     this.timeSlot = timeSlot;
     this.status = status;
-    this.note = note;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public TripMember getTripMember() {
-    return tripMember;
-  }
-
-  public void setTripMember(TripMember tripMember) {
-    this.tripMember = tripMember;
-  }
-
-  public LocalDate getScheduleDate() {
-    return scheduleDate;
-  }
-
-  public void setScheduleDate(LocalDate scheduleDate) {
-    this.scheduleDate = scheduleDate;
-  }
-
-  public TimeSlot getTimeSlot() {
-    return timeSlot;
-  }
-
-  public void setTimeSlot(TimeSlot timeSlot) {
-    this.timeSlot = timeSlot;
-  }
-
-  public ScheduleStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(ScheduleStatus status) {
-    this.status = status;
-  }
-
-  public String getNote() {
-    return note;
-  }
-
-  public void setNote(String note) {
     this.note = note;
   }
 }

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record RefreshResponse(
     @Schema(description = "새 TripFit access JWT", example = "eyJhbG...")
     String accessToken,
+
     @Schema(description = "access JWT 만료까지 남은 초", example = "7200")
     long expiresIn
 ) {

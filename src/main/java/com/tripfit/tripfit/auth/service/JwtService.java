@@ -10,12 +10,11 @@ import com.nimbusds.jwt.SignedJWT;
 import com.tripfit.tripfit.auth.config.JwtProperties;
 import com.tripfit.tripfit.auth.exception.AuthErrorCode;
 import com.tripfit.tripfit.common.exception.TripFitException;
-import org.springframework.stereotype.Service;
-
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
+import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
@@ -38,12 +37,13 @@ public class JwtService {
       // 1. 발급 시각과 만료 시각을 계산해 JWT 클레임을 구성함
       Instant now = Instant.now();
       Instant expiry = now.plusSeconds(jwtProperties.getAccessExpirationSeconds());
-      JWTClaimsSet claims = new JWTClaimsSet.Builder()
-          .subject(String.valueOf(userId))
-          .jwtID(UUID.randomUUID().toString())
-          .issueTime(Date.from(now))
-          .expirationTime(Date.from(expiry))
-          .build();
+      JWTClaimsSet claims =
+          new JWTClaimsSet.Builder()
+              .subject(String.valueOf(userId))
+              .jwtID(UUID.randomUUID().toString())
+              .issueTime(Date.from(now))
+              .expirationTime(Date.from(expiry))
+              .build();
 
       // 2. HS256 서명으로 토큰을 생성하고 직렬화함
       SignedJWT signedJwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);

@@ -19,7 +19,7 @@
 | 2 | 이름 = **성(`lastName`) + 이름(`firstName`)** 분리, **필수·건너뛰기 없음** |
 | 3 | **회원가입 = 소셜 login upsert + JWT** (이름 전에도 토큰 발급) |
 | 4 | `isGoogleCalendarConnected` — OAuth 연동 시만 `true`; 미연동·건너뛰기 = `false` |
-| 5 | `isPreScheduleRegistered` — `user_condition` 저장 시만 `true`; 미등록·건너뛰기 = `false` |
+| 5 | `isScheduleRegistered` — `user_condition` 저장 시만 `true`; 미등록·건너뛰기 = `false` |
 | 6 | `isOptionalOnboardingCompleted` — 선택 온보딩 **전체** 완료 후 `true` (재진입 시 온보딩 UI 미노출) |
 | 7 | `onboarding_step` **미사용** |
 
@@ -49,7 +49,7 @@ firstName 또는 lastName null?
 | 소셜 login | SDK 로그인 | user row upsert, JWT 발급, boolean 기본값 `false` |
 | 이름 | 성·이름 입력 (소셜 `nickname`은 인풋 prefill만) | `PATCH profile` → `first_name`, `last_name` |
 | 캘린더 | 연동 또는 건너뛰기 | 연동 성공 시 `isGoogleCalendarConnected=true` (별도 스펙). **건너뛰기 = `false` 유지** |
-| 사전 일정 | 근무·연차 입력 또는 건너뛰기 | 저장 시 `isPreScheduleRegistered=true` (별도 스펙). **건너뛰기 = `false` 유지** |
+| 사전 일정 | 근무·연차 입력 또는 건너뛰기 | 저장 시 `isScheduleRegistered=true` (별도 스펙). **건너뛰기 = `false` 유지** |
 | 온보딩 종료 | 마지막 단계 완료 | `PATCH onboarding` → `isOptionalOnboardingCompleted=true` |
 
 > **건너뛰기 전부 후 재진입:** 캘린더·일정 온보딩 **재노출 금지** — 마지막 건너뛰기 직후 `isOptionalOnboardingCompleted=true` PATCH 필수. 두 연동 boolean은 `false` 유지.
@@ -60,7 +60,7 @@ firstName 또는 lastName null?
 
 ### Must Have (wave 1 — 본 스펙)
 
-- [ ] `user` 컬럼: `first_name`, `last_name`, `is_google_calendar_connected`, `is_pre_schedule_registered`, `is_optional_onboarding_completed`
+- [ ] `user` 컬럼: `first_name`, `last_name`, `is_google_calendar_connected`, `is_schedule_registered`, `is_optional_onboarding_completed`
 - [ ] `nickname` — 소셜 값만, **fallback 폐기** ([`007`](../decisions/007-user-profile-onboarding.md))
 - [ ] login / `GET /auth/me` 응답 `user`에 위 필드 포함
 - [ ] `PATCH /api/v1/users/me/profile` — `{ firstName, lastName }` (JWT 필수)
@@ -88,7 +88,7 @@ firstName 또는 lastName null?
   "profileImageUrl": "https://lh3.googleusercontent.com/...",
   "provider": "GOOGLE",
   "isGoogleCalendarConnected": false,
-  "isPreScheduleRegistered": false,
+  "isScheduleRegistered": false,
   "isOptionalOnboardingCompleted": false
 }
 ```
@@ -99,7 +99,7 @@ firstName 또는 lastName null?
 | lastName | Y | 미입력 시 null → 이름 화면 |
 | nickname | Y | 소셜 provider 값. prefill용 |
 | isGoogleCalendarConnected | N | default `false`. **연동 성공 시만** `true` |
-| isPreScheduleRegistered | N | default `false`. **condition 저장 시만** `true` |
+| isScheduleRegistered | N | default `false`. **condition 저장 시만** `true` |
 | isOptionalOnboardingCompleted | N | default `false`. 선택 온보딩 전체 완료 시 `true` |
 
 ### `PATCH /api/v1/users/me/profile`
@@ -144,7 +144,7 @@ firstName 또는 lastName null?
 ```json
 {
   "isGoogleCalendarConnected": false,
-  "isPreScheduleRegistered": false,
+  "isScheduleRegistered": false,
   "isOptionalOnboardingCompleted": true
 }
 ```
@@ -152,7 +152,7 @@ firstName 또는 lastName null?
 | 필드 | 설명 |
 |------|------|
 | isGoogleCalendarConnected | Google Calendar OAuth **연동 성공** 시 `true`. 건너뛰기 시 **보내지 않거나 `false` 유지** |
-| isPreScheduleRegistered | `user_condition` 저장 API 연동 후 `true`. 건너뛰기 시 **보내지 않거나 `false` 유지** |
+| isScheduleRegistered | `user_condition` 저장 API 연동 후 `true`. 건너뛰기 시 **보내지 않거나 `false` 유지** |
 | isOptionalOnboardingCompleted | 선택 온보딩 **마지막 단계** 완료(등록·건너뛰기 모두 포함) 시 `true` |
 
 **일반 패턴 (건너뛰기만 한 경우)**
@@ -163,7 +163,7 @@ firstName 또는 lastName null?
 }
 ```
 
-`isGoogleCalendarConnected`·`isPreScheduleRegistered`는 `false`로 남음.
+`isGoogleCalendarConnected`·`isScheduleRegistered`는 `false`로 남음.
 
 **Response `200`** — 갱신된 `user` 요약
 
@@ -174,7 +174,7 @@ firstName 또는 lastName null?
 | first_name | varchar | null | 유저 입력 이름 |
 | last_name | varchar | null | 유저 입력 성 |
 | is_google_calendar_connected | boolean | false | Google Calendar 연동 |
-| is_pre_schedule_registered | boolean | false | 사전 일정(`user_condition`) 등록 |
+| is_schedule_registered | boolean | false | 사전 일정(`user_condition`) 등록 |
 | is_optional_onboarding_completed | boolean | false | 선택 온보딩 전체 완료 |
 
 `nickname` — 소셜 전용, fallback 없음. 상세 [`erd.md`](../architecture/erd.md).

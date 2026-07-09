@@ -33,7 +33,7 @@
 | `last_name` | `lastName` | 유저 입력 **성** (필수, nullable until PATCH) |
 | `nickname` | `nickname` | 소셜 provider 표시명 (prefill·참고용). **표시 SSOT 아님** |
 | `is_google_calendar_connected` | `isGoogleCalendarConnected` | Google Calendar OAuth **실제 연동** 시에만 `true`. 미연동·건너뛰기 = `false` |
-| `is_pre_schedule_registered` | `isPreScheduleRegistered` | `user_condition` **실제 저장** 시에만 `true`. 미등록·건너뛰기 = `false` |
+| `is_schedule_registered` | `isScheduleRegistered` | `user_condition` **실제 저장** 시에만 `true`. 미등록·건너뛰기 = `false` |
 | `is_optional_onboarding_completed` | `isOptionalOnboardingCompleted` | 선택 온보딩 **전체 완료** (마지막 단계까지 진행 후 PATCH). `true` 이후 앱 진입 시 온보딩 UI **재노출 안 함** |
 
 **이름 완료 판별:** `first_name IS NOT NULL AND last_name IS NOT NULL` (별도 boolean 없음)
@@ -51,19 +51,19 @@ firstName 또는 lastName null?  → [이름 입력] (필수)
 ```
 
 - 캘린더 단계: `isGoogleCalendarConnected`는 **연동 성공 시에만** `true`. 건너뛰기는 `false` 유지.
-- 사전 일정 단계: `isPreScheduleRegistered`는 **저장 성공 시에만** `true`. 건너뛰기는 `false` 유지.
+- 사전 일정 단계: `isScheduleRegistered`는 **저장 성공 시에만** `true`. 건너뛰기는 `false` 유지.
 - 온보딩 **전체** 재노출 방지: 마지막 단계(등록 또는 건너뛰기) 후 `PATCH /users/me/onboarding`으로 `isOptionalOnboardingCompleted=true`
 
 ### 확정 UX — 건너뛰기 전부 후 재진입
 
-캘린더·사전 일정을 **모두 건너뛴** 뒤에는 `isGoogleCalendarConnected`·`isPreScheduleRegistered`는 `false`로 남지만, 마지막에 `isOptionalOnboardingCompleted=true` PATCH가 되어 있어야 한다.
+캘린더·사전 일정을 **모두 건너뛴** 뒤에는 `isGoogleCalendarConnected`·`isScheduleRegistered`는 `false`로 남지만, 마지막에 `isOptionalOnboardingCompleted=true` PATCH가 되어 있어야 한다.
 
 **이후 앱 재진입(재로그인 포함):** 캘린더 온보딩·일정 등록 온보딩을 **다시 띄우지 않음** → 이름 입력 완료 시 **바로 메인**.
 
 ```
 캘린더 건너뛰기 → 사전 일정 건너뛰기
   → PATCH { isOptionalOnboardingCompleted: true }
-  → (isGoogleCalendarConnected=false, isPreScheduleRegistered=false 유지)
+  → (isGoogleCalendarConnected=false, isScheduleRegistered=false 유지)
 재진입 → isOptionalOnboardingCompleted=true → 메인 only
 ```
 

@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "일정 응답 시간대")
 public enum TimeSlot {
-
   @Schema(description = "오전")
   MORNING,
 

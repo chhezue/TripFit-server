@@ -1,13 +1,21 @@
 package com.tripfit.tripfit.auth.controller;
 
-import com.tripfit.tripfit.user.domain.SocialProvider;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.tripfit.tripfit.auth.dto.LoginResponse;
 import com.tripfit.tripfit.auth.dto.RefreshResponse;
-import com.tripfit.tripfit.auth.dto.UserSummaryResponse;
 import com.tripfit.tripfit.auth.exception.AuthErrorCode;
+import com.tripfit.tripfit.auth.service.AuthService;
 import com.tripfit.tripfit.common.exception.GlobalExceptionHandler;
 import com.tripfit.tripfit.common.exception.TripFitException;
-import com.tripfit.tripfit.auth.service.AuthService;
+import com.tripfit.tripfit.user.domain.SocialProvider;
+import com.tripfit.tripfit.user.dto.UserSummaryResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,14 +24,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
@@ -36,31 +36,25 @@ class AuthControllerTest {
   @BeforeEach
   void setUp() {
     AuthController authController = new AuthController(authService);
-    mockMvc = MockMvcBuilders.standaloneSetup(authController)
-        .setControllerAdvice(new GlobalExceptionHandler())
-        .build();
+    mockMvc =
+        MockMvcBuilders.standaloneSetup(authController)
+            .setControllerAdvice(new GlobalExceptionHandler())
+            .build();
   }
 
   @Test
   void login_returnsTokens() throws Exception {
-    when(authService.login(eq(SocialProvider.GOOGLE), eq("google-id-token"))).thenReturn(
-        new LoginResponse(
-            "access-jwt",
-            "refresh-token",
-            7200L,
-            new UserSummaryResponse(
-                1L,
-                "user@example.com",
-                "홍길동",
-                "https://example.com/profile.png",
-                SocialProvider.GOOGLE)));
+    when(authService.login(eq(SocialProvider.GOOGLE), eq("google-id-token")))
+        .thenReturn(new LoginResponse("access-jwt", "refresh-token", 7200L, sampleUserSummary()));
 
-    mockMvc.perform(
-        post("/api/v1/auth/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {"provider":"GOOGLE","token":"google-id-token"}
-                """))
+    mockMvc
+        .perform(
+            post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                        {"provider":"GOOGLE","token":"google-id-token"}
+                        """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.accessToken").value("access-jwt"))
         .andExpect(jsonPath("$.data.refreshToken").value("refresh-token"))
@@ -72,35 +66,41 @@ class AuthControllerTest {
     when(authService.refresh("refresh-token"))
         .thenReturn(new RefreshResponse("new-access-jwt", 7200L));
 
-    mockMvc.perform(
-        post("/api/v1/auth/refresh")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {"refreshToken":"refresh-token"}
-                """))
+    mockMvc
+        .perform(
+            post("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                        {"refreshToken":"refresh-token"}
+                        """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.accessToken").value("new-access-jwt"));
   }
 
   @Test
   void logout_returns204() throws Exception {
-    mockMvc.perform(
-        post("/api/v1/auth/logout")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {"refreshToken":"refresh-token"}
-                """))
+    mockMvc
+        .perform(
+            post("/api/v1/auth/logout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                        {"refreshToken":"refresh-token"}
+                        """))
         .andExpect(status().isNoContent());
   }
 
   @Test
   void login_missingToken_returns400WithFieldErrors() throws Exception {
-    mockMvc.perform(
-        post("/api/v1/auth/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {"provider":"GOOGLE","token":""}
-                """))
+    mockMvc
+        .perform(
+            post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                        {"provider":"GOOGLE","token":""}
+                        """))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.code").value("INVALID_INPUT"))
         .andExpect(jsonPath("$.errors[0].field").value("token"));
@@ -109,15 +109,32 @@ class AuthControllerTest {
   @Test
   void login_invalidToken_returns401() throws Exception {
     doThrow(new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN))
-        .when(authService).login(any(), any());
+        .when(authService)
+        .login(any(), any());
 
-    mockMvc.perform(
-        post("/api/v1/auth/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {"provider":"GOOGLE","token":"bad-token"}
-                """))
+    mockMvc
+        .perform(
+            post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                        {"provider":"GOOGLE","token":"bad-token"}
+                        """))
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.code").value("AUTH_INVALID_TOKEN"));
+  }
+
+  private static UserSummaryResponse sampleUserSummary() {
+    return new UserSummaryResponse(
+        1L,
+        "user@example.com",
+        null,
+        null,
+        "홍길동",
+        "https://example.com/profile.png",
+        SocialProvider.GOOGLE,
+        false,
+        false,
+        false);
   }
 }

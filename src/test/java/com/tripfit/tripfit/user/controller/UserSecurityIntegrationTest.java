@@ -1,19 +1,22 @@
-package com.tripfit.tripfit.auth.controller;
+package com.tripfit.tripfit.user.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.tripfit.tripfit.auth.service.AuthService;
 import com.tripfit.tripfit.auth.service.JwtService;
 import com.tripfit.tripfit.user.domain.SocialProvider;
 import com.tripfit.tripfit.user.dto.UserSummaryResponse;
+import com.tripfit.tripfit.user.service.UserProfileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -23,7 +26,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class AuthSecurityIntegrationTest {
+class UserSecurityIntegrationTest {
 
   @Autowired
   private WebApplicationContext webApplicationContext;
@@ -32,7 +35,7 @@ class AuthSecurityIntegrationTest {
   private JwtService jwtService;
 
   @MockitoBean
-  private AuthService authService;
+  private UserProfileService userProfileService;
 
   private MockMvc mockMvc;
 
@@ -45,15 +48,15 @@ class AuthSecurityIntegrationTest {
             .apply(SecurityMockMvcConfigurers.springSecurity())
             .build();
     accessToken = jwtService.createAccessToken(1L);
-    when(authService.getCurrentUser(1L))
+    when(userProfileService.updateProfile(eq(1L), any()))
         .thenReturn(
             new UserSummaryResponse(
                 1L,
                 "user@example.com",
-                null,
-                null,
+                "길동",
+                "홍",
                 "홍길동",
-                "https://example.com/profile.png",
+                null,
                 SocialProvider.GOOGLE,
                 false,
                 false,
@@ -61,30 +64,31 @@ class AuthSecurityIntegrationTest {
   }
 
   @Test
-  void getMe_withoutBearer_returns401() throws Exception {
+  void patchProfile_withoutBearer_returns401() throws Exception {
     mockMvc
-        .perform(get("/api/v1/auth/me"))
+        .perform(
+            patch("/api/v1/users/me/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                        {"firstName":"길동","lastName":"홍"}
+                        """))
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.code").value("AUTH_INVALID_TOKEN"));
   }
 
   @Test
-  void getMe_withValidBearer_returnsUserSummary() throws Exception {
+  void patchProfile_withValidBearer_returns200() throws Exception {
     mockMvc
-        .perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+        .perform(
+            patch("/api/v1/users/me/profile")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                        {"firstName":"길동","lastName":"홍"}
+                        """))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.email").value("user@example.com"))
-        .andExpect(jsonPath("$.data.nickname").value("홍길동"))
-        .andExpect(jsonPath("$.data.profileImageUrl").value("https://example.com/profile.png"))
-        .andExpect(jsonPath("$.data.provider").value("GOOGLE"))
-        .andExpect(jsonPath("$.data.isOptionalOnboardingCompleted").value(false));
-  }
-
-  @Test
-  void getMe_withInvalidBearer_returns401() throws Exception {
-    mockMvc
-        .perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer invalid-token"))
-        .andExpect(status().isUnauthorized())
-        .andExpect(jsonPath("$.code").value("AUTH_INVALID_TOKEN"));
+        .andExpect(jsonPath("$.data.firstName").value("길동"));
   }
 }

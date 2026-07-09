@@ -11,9 +11,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-
 import java.time.LocalTime;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "user_condition")
 @Schema(description = "사용자 근무·연차 조건 (온보딩·내 일정 관리)")
@@ -57,8 +63,6 @@ public class UserCondition extends BaseTimeEntity {
   @Column(name = "is_holiday_rest", nullable = false)
   private boolean holidayRest;
 
-  protected UserCondition() {}
-
   public UserCondition(
       User user,
       String workDays,
@@ -75,74 +79,6 @@ public class UserCondition extends BaseTimeEntity {
     this.maxVacationDays = maxVacationDays;
     this.vacationApplyPeriod = vacationApplyPeriod;
     this.halfVacationAvailable = halfVacationAvailable;
-    this.holidayRest = holidayRest;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public User getUser() {
-    return user;
-  }
-
-  public void setUser(User user) {
-    this.user = user;
-  }
-
-  public String getWorkDays() {
-    return workDays;
-  }
-
-  public void setWorkDays(String workDays) {
-    this.workDays = workDays;
-  }
-
-  public LocalTime getWorkStartTime() {
-    return workStartTime;
-  }
-
-  public void setWorkStartTime(LocalTime workStartTime) {
-    this.workStartTime = workStartTime;
-  }
-
-  public LocalTime getWorkEndTime() {
-    return workEndTime;
-  }
-
-  public void setWorkEndTime(LocalTime workEndTime) {
-    this.workEndTime = workEndTime;
-  }
-
-  public Integer getMaxVacationDays() {
-    return maxVacationDays;
-  }
-
-  public void setMaxVacationDays(Integer maxVacationDays) {
-    this.maxVacationDays = maxVacationDays;
-  }
-
-  public String getVacationApplyPeriod() {
-    return vacationApplyPeriod;
-  }
-
-  public void setVacationApplyPeriod(String vacationApplyPeriod) {
-    this.vacationApplyPeriod = vacationApplyPeriod;
-  }
-
-  public boolean isHalfVacationAvailable() {
-    return halfVacationAvailable;
-  }
-
-  public void setHalfVacationAvailable(boolean halfVacationAvailable) {
-    this.halfVacationAvailable = halfVacationAvailable;
-  }
-
-  public boolean isHolidayRest() {
-    return holidayRest;
-  }
-
-  public void setHolidayRest(boolean holidayRest) {
     this.holidayRest = holidayRest;
   }
 }

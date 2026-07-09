@@ -4,12 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
+import java.time.LocalDateTime;
+import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
-
+@Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @Schema(description = "생성·수정 시각 공통 베이스 (JPA Auditing)")
@@ -26,12 +27,4 @@ public abstract class BaseTimeEntity {
   private LocalDateTime updatedAt;
 
   protected BaseTimeEntity() {}
-
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
-
-  public LocalDateTime getUpdatedAt() {
-    return updatedAt;
-  }
 }

@@ -33,17 +33,18 @@ public class SecurityConfig {
         .exceptionHandling(
             exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
         .authorizeHttpRequests(
-            auth -> auth
-                .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers(
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/v3/api-docs/**")
+            auth -> auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login")
                 .permitAll()
-                .anyRequest().authenticated())
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout")
+                .permitAll()
+                .requestMatchers("/actuator/**")
+                .permitAll()
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
+                .permitAll()
+                .anyRequest()
+                .authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }

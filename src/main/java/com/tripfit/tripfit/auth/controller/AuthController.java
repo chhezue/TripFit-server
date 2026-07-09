@@ -6,9 +6,9 @@ import com.tripfit.tripfit.auth.dto.LoginResponse;
 import com.tripfit.tripfit.auth.dto.LogoutRequest;
 import com.tripfit.tripfit.auth.dto.RefreshRequest;
 import com.tripfit.tripfit.auth.dto.RefreshResponse;
-import com.tripfit.tripfit.auth.dto.UserSummaryResponse;
 import com.tripfit.tripfit.auth.service.AuthService;
 import com.tripfit.tripfit.common.api.ApiResponse;
+import com.tripfit.tripfit.user.dto.UserSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -32,7 +32,8 @@ public class AuthController {
   }
 
   // 소셜 로그인 요청을 받아 액세스 토큰과 리프레시 토큰을 발급함
-  @Operation(summary = "소셜 로그인",
+  @Operation(
+      summary = "소셜 로그인",
       description = "Google/Kakao/Apple 토큰 검증 후 TripFit JWT·refresh token 발급")
   @PostMapping("/login")
   ResponseEntity<ApiResponse<LoginResponse>> login(
@@ -44,7 +45,8 @@ public class AuthController {
   }
 
   // 리프레시 토큰을 검증해 새로운 액세스 토큰을 재발급함
-  @Operation(summary = "액세스 토큰 재발급",
+  @Operation(
+      summary = "액세스 토큰 재발급",
       description = "유효한 refresh token으로 access JWT만 재발급 (wave 1: refresh row 유지)")
   @PostMapping("/refresh")
   ResponseEntity<ApiResponse<RefreshResponse>> refresh(

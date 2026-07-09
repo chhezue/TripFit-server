@@ -1,26 +1,25 @@
 package com.tripfit.tripfit.auth.client;
 
-import com.tripfit.tripfit.auth.config.OAuthProperties;
-import com.tripfit.tripfit.user.domain.SocialProvider;
-import com.tripfit.tripfit.auth.exception.AuthErrorCode;
-import com.tripfit.tripfit.common.exception.TripFitException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.RemoteJWKSet;
+import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
-import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-import org.springframework.stereotype.Component;
-
+import com.tripfit.tripfit.auth.config.OAuthProperties;
+import com.tripfit.tripfit.auth.exception.AuthErrorCode;
+import com.tripfit.tripfit.common.exception.TripFitException;
+import com.tripfit.tripfit.user.domain.SocialProvider;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 @Component
 public class GoogleTokenVerifier implements SocialTokenVerifier {
@@ -53,8 +52,8 @@ public class GoogleTokenVerifier implements SocialTokenVerifier {
     // 1. 허용된 구글 클라이언트 ID 목록이 설정돼 있는지 확인함
     List<String> allowedAudiences = oAuthProperties.getGoogleClientIds();
     if (allowedAudiences.isEmpty()) {
-      throw new TripFitException(AuthErrorCode.AUTH_INVALID_TOKEN,
-          "Google client ID is not configured");
+      throw new TripFitException(
+          AuthErrorCode.AUTH_INVALID_TOKEN, "Google client ID is not configured");
     }
     try {
       // 2. 토큰 서명을 검증하고 클레임을 파싱함
