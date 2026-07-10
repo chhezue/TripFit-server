@@ -19,7 +19,7 @@
 | 2 | 이름 = **성(`lastName`) + 이름(`firstName`)** 분리, **필수·건너뛰기 없음** |
 | 3 | **회원가입 = 소셜 login upsert + JWT** (이름 전에도 토큰 발급) |
 | 4 | `isGoogleCalendarConnected` — OAuth 연동 시만 `true`; 미연동·건너뛰기 = `false` |
-| 5 | `isScheduleRegistered` — `user_condition` 저장 시만 `true`; 미등록·건너뛰기 = `false` |
+| 5 | `isScheduleRegistered` — `schedule` row_type=CONDITION 저장 시만 `true`; 미등록·건너뛰기 = `false` |
 | 6 | `isOptionalOnboardingCompleted` — 선택 온보딩 **전체** 완료 후 `true` (재진입 시 온보딩 UI 미노출) |
 | 7 | `onboarding_step` **미사용** |
 
@@ -71,7 +71,7 @@ firstName 또는 lastName null?
 ### Deferred (별도 스펙 — wave 1 본문 구현 안 함)
 
 - [ ] Google Calendar OAuth 연동 API·토큰 저장
-- [ ] `user_condition` CRUD (마이페이지·여행방에서도 입력 가능)
+- [ ] `schedule` CONDITION CRUD — [`schedule-unified.md`](schedule-unified.md) (wave 2)
 - [ ] 마이페이지 이름 수정 — [`user-my-page.md`](user-my-page.md) (`PATCH /users/me/my-page`)
 - [ ] 네이버 캘린더
 
@@ -153,7 +153,7 @@ firstName 또는 lastName null?
 | 필드 | 설명 |
 |------|------|
 | isGoogleCalendarConnected | Google Calendar OAuth **연동 성공** 시 `true`. 건너뛰기 시 **보내지 않거나 `false` 유지** |
-| isScheduleRegistered | `user_condition` 저장 API 연동 후 `true`. 건너뛰기 시 **보내지 않거나 `false` 유지** |
+| isScheduleRegistered | `schedule` CONDITION 저장 API 연동 후 `true`. 건너뛰기 시 **보내지 않거나 `false` 유지** |
 | isOptionalOnboardingCompleted | 선택 온보딩 **마지막 단계** 완료(등록·건너뛰기 모두 포함) 시 `true` |
 
 **일반 패턴 (건너뛰기만 한 경우)**
@@ -175,7 +175,7 @@ firstName 또는 lastName null?
 | first_name | varchar | null | 유저 입력 이름 |
 | last_name | varchar | null | 유저 입력 성 |
 | is_google_calendar_connected | boolean | false | Google Calendar 연동 |
-| is_schedule_registered | boolean | false | 사전 일정(`user_condition`) 등록 |
+| is_schedule_registered | boolean | false | 사전 일정(`schedule` CONDITION) 등록 |
 | is_optional_onboarding_completed | boolean | false | 선택 온보딩 전체 완료 |
 
 `nickname` — 소셜 전용, fallback 없음. 상세 [`erd.md`](../architecture/erd.md).

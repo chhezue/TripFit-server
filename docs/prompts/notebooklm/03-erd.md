@@ -1,7 +1,8 @@
 # NotebookLM 프롬프트 03 — ERD 설계
 
 > **생성 대상:** `docs/architecture/erd.md`  
-> **선행 권장:** 01·02 실행 후, PRD·MVP·비즈니스 규칙·플로우 출력을 채팅에 함께 붙여넣기
+> **입력:** 노트북 기획 자료 + **01·02단계 NotebookLM 출력** (아래 `[선택]`에 붙여넣기)  
+> **Cursor 후속:** [../cursor-import-checklist.md](../cursor-import-checklist.md)
 
 ---
 
@@ -11,16 +12,27 @@
 당신은 TripFit 백엔드의 데이터 모델 설계자입니다.
 이 노트북의 기획 자료와, 아래에 붙여넣은 PRD·MVP·비즈니스 규칙·플로우(있는 경우)를 근거로 ERD 문서를 작성해 주세요.
 
-[선택: 01·02 프롬프트 결과 문서를 여기에 붙여넣기]
+[선택: 01·02단계 NotebookLM 출력 전체를 여기에 붙여넣기. repo 파일 아님.]
+
+## 백엔드 확정 사항 (기획서에 없어도 ERD에 포함)
+
+아래는 이미 백엔드에서 확정된 설계입니다. 기획 자료와 모순되면 ERD에 반영하되 `[충돌: 기획]`으로 표시하고 삭제하지 마세요.
+
+- **`refresh_token` 테이블** — wave 1 소셜 로그인·JWT (opaque refresh, user_id FK, token UNIQUE, family_id, expires_at)
+- **`user` 컬럼** — `first_name`, `last_name`(유저 PATCH 필수), `is_optional_onboarding_completed`, `is_schedule_registered`, `is_google_calendar_connected`
+- **`user.profile_image_url`** — wave 1: provider CDN URL. wave 4: TripFit S3 미러(B안) `[충돌 가능]`
+- **Soft delete** — `user`, `trip` 등 `deleted_at`
+- **알림 이력 테이블** — MVP Out, BR-NOTI-*는 §5 향후 확장에만
 
 ## 공통 규칙
 
 1. 기획 자료에 없는 엔티티·컬럼은 추측하지 말고 `[미정]` 또는 `[제안]`으로 표시하세요.
-2. MVP Out of Scope 기능은 ERD에 넣지 말고, 문서 말미 "향후 확장" 섹션에만 간략히 언급하세요.
+2. MVP Out of Scope 기능은 ERD 본문에 넣지 말고, §5 "향후 확장"에만 간략히 언급하세요.
 3. Java/Spring/JPA 구현 코드는 작성하지 마세요. 논리·물리 모델 문서만 작성하세요.
-4. 테이블·컬럼명은 **snake_case**, 단수형 테이블명(예: `trip`, `trip_member`)을 사용하세요.
-5. 한국어로 작성하세요.
-6. 출력은 `## docs/architecture/erd.md` 제목 아래 파일 전체를 한 번에 출력하세요.
+4. 테이블·컬럼명: **snake_case**, **단수형** 테이블명 (`trip`, `trip_member`).
+5. 한국어. 상단: `> NotebookLM 기획 자료 정리본. 비즈니스 규칙은 docs/product/business-rules/ 참고.`
+6. 출력: `## docs/architecture/erd.md` 제목 아래 파일 전체.
+7. **백엔드 확정 사항**(위 `refresh_token`, user 온보딩 컬럼 등)은 기획과 충돌해도 삭제하지 말고 `[충돌: 기획]` 표시.
 
 ---
 
@@ -30,42 +42,68 @@
 
 #### 1. 개요
 - 데이터 모델 설계 목적
-- 설계 원칙 (snake_case, soft delete 사용 여부, ID 타입 등)
-- 대상 DB 가정: MySQL 8.0 (TripFit 런타임과 동일. 예약어 `user` 등은 문서에 주석으로 표시)
+- 설계 원칙: snake_case, soft delete(`deleted_at`), bigint PK, BR-* 반영
+- 대상 DB: **MySQL 8.0** (예약어 `user` 등 주석)
 
 #### 2. Mermaid ERD
-- `erDiagram` 문법으로 전체 관계도 작성
-- Cardinality 표시 (||--o{, }o--|| 등)
-- Mermaid가 렌더링 가능한 문법만 사용
+- `erDiagram` — cardinality (`||--o{` 등)
+- MVP In Scope 테이블 전부 포함
 
-#### 3. 테이블 정의 (MVP In Scope만)
+#### 3. 테이블 정의 (MVP In Scope)
 
-각 테이블마다:
-- 테이블명, 한 줄 설명
-- 컬럼 표: 컬럼 | 타입 | Nullable | PK/FK | 설명
-- 인덱스 (필요 시)
-- 관련 BR-ID (business-rules와 연결, 예: BR-TRIP-001)
+**기획 핵심 6테이블 (필수):**
+- `user`
+- `user_condition`
+- `trip`
+- `trip_member`
+- `member_schedule`
+- `recommendation`
 
-#### 4. 관계 요약 표
-- From | To | 관계 (1:N 등) | 설명
+**인증 (백엔드 확정 — Must):**
+- `refresh_token` — 위 "백엔드 확정 사항" 참고
+
+각 테이블:
+- 한 줄 설명
+- **관련 BR** 또는 **관련 결정** (예: `BR-TRIP-001`, `백엔드 확정: refresh_token`)
+- 컬럼 표: `| 컬럼 | 타입 | Nullable | PK/FK | 설명 |`
+- 인덱스·UNIQUE·제약 (BR 반영, 예: BR-TRIP-008 duration 검증 `[제안]`)
+
+**enum·상태값 (문서에 명시):**
+- `member_schedule.time_slot`: MORNING, AFTERNOON, EVENING
+- `member_schedule.status`: POSSIBLE, IMPOSSIBLE, TBD
+- `trip.status`: ONGOING, CONFIRMED, CANCELED (UI 상태 매핑은 `[미정]`)
+- `trip_member.role`: OWNER, MEMBER
+- `trip_member.status`: JOINED, RESPONDED
+- `user.provider`: KAKAO, GOOGLE, APPLE
+
+#### 4. 관계 요약
+| From | To | 관계 | 설명 |
 
 #### 5. MVP 범위와의 매핑
-- MVP In Scope 기능 → 사용 테이블 매핑
-- Out of Scope → 향후 추가 예정 엔티티 (이름만)
+- In Scope: MVP 기능 → 테이블
+- Out of Scope (향후): `notification`, `trip_expense`, `reservation` 등 이름만
 
 #### 6. 미정 / 기획 확인 필요
-- `[미정]`, `[제안]` 항목 목록
-- 기획자·개발자 확인이 필요한 설계 결정
+| 항목 | 내용 |
+
+포함 권장:
+- 비회원 참여 → `trip_member.user_id` Nullable vs 게스트 (BR-USER-002)
+- 알림 이력 테이블 — BR-NOTI-* 별도 설계
+- trip soft delete cascade
+
+#### ## 기획 메모 (NotebookLM)
+- MVP 핵심 테이블 6개 요약
+- 기획 확인 필요 TOP 3
 
 ---
 
-## 설계 시 체크리스트
+## 설계 체크리스트
 
-- 비즈니스 규칙(BR-*)을 컬럼 제약·관계로 반영했는가?
-- 용어집(glossary)의 명칭과 테이블/컬럼명이 일치하는가?
-- 사용자 플로우에 필요한 상태·연결이 엔티티에 있는가?
-- 다대다 관계는 조인 테이블로 분리했는가?
-- 삭제·탈퇴·취소 정책이 기획과 맞는가 (hard/soft delete)?
+- BR-*가 컬럼·관계·제약에 반영되었는가?
+- glossary 용어와 컬럼명이 일치하는가?
+- 플로우 단계에 필요한 상태·FK가 있는가?
+- 다대다는 조인 테이블(`trip_member`)로 분리했는가?
+- 알림(BR-NOTI-*)은 본 ERD 범위 외로 분리했는가?
 
 ---
 
@@ -79,8 +117,9 @@
 
 ## 마지막 요약 (짧게)
 
-1. MVP에 포함된 테이블 목록
-2. `[제안]`으로 추가한 엔티티·컬럼과 이유
-3. 기획 확인이 필요한 설계 결정
-4. 비즈니스 규칙 중 ERD로 표현되지 않은 항목 (있다면)
+1. MVP In Scope 테이블 목록 (refresh_token 포함 여부)
+2. `[제안]` 컬럼·테이블과 이유
+3. `[충돌: 기획]` — 백엔드 확정 사항과 기획 모순 (있으면)
+4. BR 중 ERD로 표현되지 않은 항목
+5. 기획 확인 필요 TOP 3
 ```

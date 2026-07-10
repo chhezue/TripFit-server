@@ -43,6 +43,10 @@ public class Trip extends SoftDeleteEntity {
   @Column(nullable = false)
   private String name;
 
+  @Schema(description = "여행지. UI 입력 선택 가능", nullable = true, example = "제주")
+  @Column
+  private String destination;
+
   @Schema(description = "희망 여행 기간 시작일", example = "2026-08-01")
   @Column(nullable = false)
   private LocalDate startRange;
@@ -75,6 +79,10 @@ public class Trip extends SoftDeleteEntity {
   @Schema(description = "확정된 여행 종료일. status=CONFIRMED 시", nullable = true, example = "2026-08-06")
   @Column
   private LocalDate confirmedEndDate;
+
+  @Schema(description = "취소·삭제 VOC 사유. wave 4 구현", nullable = true)
+  @Column(name = "cancel_reason")
+  private String cancelReason;
 
   public Trip(
       User owner,

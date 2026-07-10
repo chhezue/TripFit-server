@@ -206,7 +206,7 @@ Access JWT (2h) + Refresh Token (30d, DB) 발급
 - Google Calendar OAuth 연동 API 본체 — [`user-onboarding.md`](user-onboarding.md) Deferred; boolean·온보딩 PATCH만 wave 1
 - Apple Sign In **Server-to-Server Notification** — 스토어 제출 전 별도 스펙 [`auth-apple-server-notifications.md`](auth-apple-server-notifications.md)
 - FCM/APNs 디바이스 토큰
-- 비회원(게스트) 세션 — BR-USER-002 `[미정]`
+- 비회원(게스트) 세션 — **Out of Scope** (BR-USER-002 확정: 참여자 소셜 로그인 필수)
 
 ## API / 인터페이스
 

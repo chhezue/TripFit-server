@@ -1,36 +1,40 @@
-# NotebookLM 기획 문서 생성 프롬프트
+# NotebookLM 프롬프트 (01~04)
 
-TripFit 기획 자료(NotebookLM 노트북 업로드본)를 repo 문서로 정리할 때 사용합니다.
+노트북 **기획 자료만**으로 repo 형식의 마크다운을 생성합니다.  
+**repo·GitHub 내용은 NotebookLM에 넣지 않습니다.**
 
-## 실행 순서
+실행 순서·저장 경로: 상위 [../README.md](../README.md)
 
-| 순서 | 프롬프트 파일 | 생성 대상 | 붙여넣을 경로 |
-|------|---------------|-----------|---------------|
-| 1 | [01-product-foundation.md](01-product-foundation.md) | PRD, MVP, 용어집 | `docs/product/` |
-| 2 | [02-business-rules-and-flows.md](02-business-rules-and-flows.md) | 비즈니스 규칙, 플로우 | `docs/product/business-rules/`, `docs/product/flows/` |
-| 3 | [03-erd.md](03-erd.md) | ERD | `docs/architecture/erd.md` |
+## 프롬프트 목록
 
-## 사용 방법
+| # | 파일 | 생성 대상 |
+|---|------|-----------|
+| 01 | [01-product-foundation.md](01-product-foundation.md) | `prd.md`, `mvp.md`, `glossary.md` |
+| 02 | [02-business-rules-and-flows.md](02-business-rules-and-flows.md) | `business-rules/*`, `flows/*` |
+| 03 | [03-erd.md](03-erd.md) | `architecture/erd.md` |
+| 04 | [04-design-wireframe.md](04-design-wireframe.md) | `design/figma-wireframe-v1.md` (선택) |
 
-1. NotebookLM에 기획 관련 문서를 모두 업로드한다.
-2. **01** 프롬프트 전체를 복사해 새 채팅에 붙여넣고 실행한다.
-3. 출력을 해당 `docs/product/` 파일에 복사한다.
-4. **02**, **03**도 같은 방식으로 순서대로 실행한다.
-5. **03 실행 전** (권장): 01·02에서 작성된 내용을 채팅에 함께 붙여넣으면 ERD 정합성이 높아진다.
-6. **Figma 와이어프레임**이 있으면 `docs/product/design/figma-wireframe-v1.md`도 함께 참고한다.
+## 입력 규칙
 
-## 공통 규칙 (모든 프롬프트에 포함)
+| 허용 | 불가 |
+|------|------|
+| 노트북에 업로드된 기획 자료 | repo `docs/` 파일 |
+| **이전 단계 NotebookLM 출력** (2·3단계) | `decisions/`, `specs/` 전문 |
+| Figma URL·화면 설명 (노트북에 있는 것) | 구현 코드·JPA·SQL |
 
-- 업로드 자료에 없는 내용은 추측하지 않고 `[미정]` 또는 `[기획 자료에 없음]` 표시
-- 자료 충돌 시 충돌 내용과 채택 이유 명시
-- 구현 코드(Java 등)는 작성하지 않음
-- 한국어로 작성
-- 출력은 `## docs/...` 경로 제목으로 파일 구분
+## 공통 출력 규칙
 
-## 후속 작업 (Cursor)
+- 업로드 자료에 없음 → `[미정]` / `[기획 자료에 없음]`
+- 자료 간 충돌 → 채택 근거 + `## 기획 메모 (NotebookLM)`
+- 파일 상단 → `> NotebookLM 기획 자료 정리본.`
+- 출력 구분 → `## docs/...` 경로 제목
+- Java·Spring·REST 상세 스펙 작성 금지
 
-문서 반영 후 기능 구현 시:
+## waves · 엔지니어링 경계
 
-- `docs/product/mvp.md`로 범위 확인
-- `docs/architecture/erd.md`로 엔티티·관계 참조
-- `specify` 스킬로 `docs/specs/{feature}.md` 작성 후 구현
+- `mvp.md`: [`waves.md`](../../product/waves.md) **링크 + wave↔기능 매핑 표**만. wave 1~4 정의 문구 복사 금지.
+- ERD(03): 프롬프트에 적힌 **백엔드 확정 사항**(refresh_token 등)은 기획서에 없어도 포함. 그 외 인프라·TTL·배포는 Cursor [import-checklist](../cursor-import-checklist.md)에서 검증.
+
+## Cursor 후속
+
+NotebookLM 출력 저장 후 → [../cursor-import-checklist.md](../cursor-import-checklist.md)
