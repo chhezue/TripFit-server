@@ -23,14 +23,17 @@ docs/
 │   ├── business-rules/       ← BR-* 규칙
 │   └── flows/                ← 사용자 플로우
 ├── specs/                    ← 기능 스펙 (implement 전)
-│   ├── auth-social-login.md              ← wave 1 소셜 로그인·JWT
-│   ├── user-onboarding.md                ← wave 1 이름·온보딩 boolean·PATCH API
+│   ├── auth-social-login.md              ← wave 1 소셜 로그인·JWT (Approved)
+│   ├── user-onboarding.md                ← wave 1 이름·온보딩 boolean·PATCH API (Approved)
 │   ├── user-my-page.md                   ← wave 1 마이페이지 이름 수정 PATCH API
+│   ├── schedule-unified.md               ← wave 2 schedule A안 통합 (Draft)
+│   ├── trip-room-api.md                  ← wave 2 여행방·참여·Pin (Draft)
+│   ├── trip-recommendation.md            ← wave 2 추천 4모드·확정 (Draft)
 │   ├── auth-token-rotation.md            ← wave 4 RTR + Redis (Draft)
 │   ├── auth-apple-server-notifications.md  ← Apple S2S webhook (스토어 제출 전)
 │   └── user-profile-image-s3-mirror.md   ← wave 4 프로필 이미지 S3 미러링 B안 (Draft)
 ├── decisions/                ← 인프라·아키텍처 확정 (003 architecture guide, …, 007 user onboarding, …)
-└── prompts/notebooklm/       ← 기획 문서 재생성 프롬프트
+└── prompts/                  ← NotebookLM 01~04 + Cursor import 체크리스트
 ```
 
 ## 읽는 순서 (기능 구현 시)
@@ -53,7 +56,7 @@ docs/
 | 배포 절차 | `../deploy/README.md` | `deploy/`, 루트 `docker-compose.yml` |
 | VPC·SG 심화 | `architecture/ec2-split-deployment.md` | AWS 인프라 (참고) |
 
-NotebookLM 프롬프트(`prompts/notebooklm/`)로 ERD를 재생성할 때도 **MySQL 8.0** 기준으로 맞춥니다.
+기획 수정 반영: [`prompts/README.md`](prompts/README.md) — NotebookLM **01→02→03→(04)**, repo는 Cursor [`cursor-import-checklist.md`](prompts/cursor-import-checklist.md). ERD는 **MySQL 8.0** 기준.
 
 ## 관련 경로
 

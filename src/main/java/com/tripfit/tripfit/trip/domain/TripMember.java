@@ -41,10 +41,10 @@ public class TripMember extends BaseTimeEntity {
   @JoinColumn(name = "trip_id", nullable = false)
   private Trip trip;
 
-  // TODO(BR-USER-002): 비회원 링크 참여 시 nullable vs 로그인 강제 정책 확정 필요
-  @Schema(description = "참여 사용자. 비회원 참여 정책 미정 시 null 가능", nullable = true)
+  @Schema(description = "참여 사용자. 소셜 로그인 필수 (BR-USER-002)",
+      requiredMode = Schema.RequiredMode.REQUIRED)
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id")
+  @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
   @Schema(description = "방 내 역할 (방장/멤버)")
@@ -60,6 +60,10 @@ public class TripMember extends BaseTimeEntity {
   @Schema(description = "방 참여 시각", example = "2026-07-07T12:00:00")
   @Column(nullable = false)
   private LocalDateTime joinedAt;
+
+  @Schema(description = "홈 화면 고정 여부 (참여자별)", example = "false")
+  @Column(name = "is_pinned", nullable = false)
+  private boolean pinned;
 
   public TripMember(
       Trip trip, User user, TripMemberRole role, TripMemberStatus status, LocalDateTime joinedAt) {

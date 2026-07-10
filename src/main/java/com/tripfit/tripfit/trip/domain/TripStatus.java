@@ -12,5 +12,8 @@ public enum TripStatus {
   CONFIRMED,
 
   @Schema(description = "취소됨")
-  CANCELED
+  CANCELED,
+
+  @Schema(description = "종료됨 (희망 기간 만료 등)")
+  TERMINATED
 }
