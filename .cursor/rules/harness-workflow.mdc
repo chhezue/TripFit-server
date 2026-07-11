@@ -15,7 +15,27 @@ alwaysApply: true
 3. **임의 개선·관례 적용 금지** — "더 나은 기본값", "업계 일반값", "코드가 간단해짐"만으로 문서와 다른 수치·구조를 바꾸지 않는다. 변경이 필요하면 **문서 amend 또는 사용자 명시 승인 후** 진행.
 4. **불확실하면 반드시 질문** — 가정을 숨기지 않는다. 질문 없이 진행한 선택은 **잘못된 작업**으로 간주한다.
 
-**절대 하지 말 것:** 문서와 다른 access/refresh TTL, API 필드, 에러 코드, env 키 이름을 에이전트가 임의로 정해 구현·커밋.
+**절대 하지 말 것:** 문서와 다른 access/refresh TTL, API 필드, 에러 코드, env 키 이름을 에이전트가 임의로 정해 구현·커밋. **에러 코드·`@TripActivity`·권한 어노테이션을 “다음 커밋에” 미루기.**
+
+## ⛔ ErrorCode · 교차관심사(AOP/Interceptor) — 같은 턴 즉시 갱신
+
+API·BR 실패 케이스·권한 게이트·`last_activity_at` touch를 **추가·변경하면 같은 PR·같은 턴**에 아래를 끝낸다. “나중에” 금지.
+
+| 변경 | 같은 턴에 필수 |
+|------|----------------|
+| 새 실패 분기·HTTP/`code` | `{Domain\|Feature}ErrorCode` 상수 + `TripFitException` throw + **스펙 에러 표** + `@Schema` |
+| L1 touch 이벤트 ([`trip-last-activity-at.md`](../../docs/specs/trip-last-activity-at.md)) | public 유스케이스에 `@TripActivity` (create는 엔티티 초기값) |
+| 멤버/방장 전용 API | `@TripMemberOnly` / `@TripOwnerOnly` + Interceptor 계약 유지 |
+| 폐기된 `code`·게이트 | enum·throw·스펙·Swagger **삭제** (레거시 절) |
+
+**금지**
+
+- throw/`code` 문자열만 넣고 enum·스펙 미갱신
+- touch 대상인데 `@TripActivity` 누락 (또는 수동 `touchLastActivity` 재도입)
+- Draft 스펙 전용 코드를 Approved 전에 enum에 미리 넣기 (`#13` 추천 코드 등)
+- Filter/Interceptor 경로에서 envelope와 다른 ad-hoc JSON
+
+SSOT: [`docs/architecture/api-response.md`](../../docs/architecture/api-response.md) · `.cursor/rules/spring-boot-java.mdc` ErrorCode·AOP 절
 
 ## ⛔ DB 스키마 — 상용 데이터 없음 (마이그레이션 금지)
 
@@ -63,6 +83,34 @@ dev · 마이그레이션 없음 → **`docs/architecture/erd.md`·엔티티는 
 
 **금지:** `[미정]`을 묻지 않고 임의 확정해 구현·커밋 · `#2`에만 적고 문서 `[미정]`을 빼먹기
 
+## ⛔ Wave Must / Nice / Out · 용어 (단정 금지)
+
+에이전트가 “Must다 / Nice다 / Out이다”를 **Backlog 없이** 단정하지 않는다. 분류 SSOT는 Wave Backlog Issue(`#29`~`#32`).
+
+| 용어 | 의미 | SSOT |
+|------|------|------|
+| **이슈 `## Must Have`** | **그 이슈**를 끝내는 체크리스트 | 해당 Feature Issue |
+| **Wave Must** | 해당 Wave **DoD에 필수** | Backlog **Must** 섹션 |
+| **스펙 `MVP: In scope`** | 제품 범위에 들어감 — **Wave Must 자동 아님** | Must로 쓰려면 Backlog Must에 **명시** |
+| **Nice** | `wave:N`이지만 DoD **불필요** | Backlog **Nice** + 이슈 비고 `분류: Wave N Nice` |
+| **Out** | **이 Wave에서 안 함** (보류·다음 Wave·안 함) | Backlog **Out** — Nice와 **혼용 표기 금지** (`Nice / Out` 금지) |
+
+**금지**
+
+- Backlog에 없는 이슈를 Wave Must/Nice라고 말함
+- `MVP: In scope`만 보고 Wave Must로 취급
+- Nice와 Out을 한 칸에 섞어 씀 (`#19`/`#20` 사고)
+
+**일정·기간 용어 (혼동 금지 — glossary SSOT):**
+
+| 용어 | 의미 | 비고 |
+|------|------|------|
+| **희망 기간** | `trip.startRange`~`endRange` | 추천·조율 탐색 범위 |
+| **조회 윈도우** | 여행방 일정 calendar 조회 가능 구간 (#37) | 희망 기간과 **별 축** · X1 앵커는 Approved 전 `[미정]` |
+| **A1 (730일)** | 본인 `users/schedule/calendar` **요청 구간 길이** 상한 (#17) | 조회 윈도우와 **의미 다름** |
+
+상세: [`docs/product/development-wave.md`](../../docs/product/development-wave.md) · [`docs/product/glossary.md`](../../docs/product/glossary.md)
+
 **브랜치 네이밍 (필수):** `main`에서 `{type}/{issue-number}-{description}` 분기 — **이슈 번호 생략 금지**. SSOT: [`.github/CONTRIBUTING.md`](../../.github/CONTRIBUTING.md) (`feat/12-trip-room-create` 등).
 
 **스펙 신호:** DB 스키마 변경, 3개 이상 파일, BR-* 영향, 프로필/배포 변경, **인증·푸시·딥링크·결제** 등 클라이언트 연동 API.
@@ -82,6 +130,7 @@ dev · 마이그레이션 없음 → **`docs/architecture/erd.md`·엔티티는 
 - **요청 범위만** 수정 — 인접 코드·주석·포맷 "개선" 금지, 깨지지 않은 것 리팩터 금지
 - 요청 밖 기능·단일 사용 추상화·불필요한 설정 추가 금지
 - **최우선 규칙 재확인** — 스펙·문서와 다른 수치·계약·env를 코드에 넣지 않음
+- **ErrorCode·AOP** — 실패 분기·touch·권한 게이트 변경 시 **같은 턴**에 enum/어노테이션/스펙 갱신 (위 ⛔ ErrorCode 절)
 - 기존 스타일 유지 (Gradle·탭 인덴트·네이밍). 내 변경으로 생긴 unused import/변수만 정리
 - 패키지: `com.tripfit.tripfit` — 도메인 기반 레이어드 (`{domain}/controller|dto|service|domain|repository|client`, 공통 `common/`). 상세: `.cursor/rules/spring-boot-java.mdc`
 - **Entity·DTO·enum 추가/수정 시** `@Schema(description)` 필수 — 클래스·필드·enum 상수마다. **DB 없는 파생 필드**는 `@Schema` + 계산 Service·Repository 주석(`.cursor/rules/spring-boot-java.mdc` § 파생·조회 시 계산 필드). 닫힌 집합은 Java enum 분리. JWT API는 `@Operation` + `bearer-jwt`(상세: `.cursor/rules/spring-boot-java.mdc`)

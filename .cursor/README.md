@@ -43,9 +43,9 @@ Cursor가 이 저장소에서 작업할 때 참조하는 **프로젝트 전용 A
 
 | 파일 | `alwaysApply` | glob | 요약 |
 |------|---------------|------|------|
-| `harness-workflow.mdc` | ✅ true | — | 계획 → 승인 → 구현 → 검증 · **레거시 삭제** · **ERD 적극 제안** · 후속 제안 · **`[미정]` → [#2](https://github.com/Central-MakeUs/TripFit-server/issues/2)** |
+| `harness-workflow.mdc` | ✅ true | — | 계획 → 승인 → 구현 → 검증 · **레거시 삭제** · **ERD 적극 제안** · **ErrorCode·AOP 즉시 갱신** · **Wave Must/Nice/Out 용어** · 후속 제안 · **`[미정]` → [#2](https://github.com/Central-MakeUs/TripFit-server/issues/2)** |
 | `superpowers-workflow.mdc` | ✅ true | — | Superpowers 스킬 트리거·하네스 우선순위 |
-| `spring-boot-java.mdc` | false | `**/*.java` | 레이어·enum·Entity·OpenAPI JWT·API·예외·**주석(Comments)** 컨벤션 |
+| `spring-boot-java.mdc` | false | `**/*.java` | 레이어·enum·Entity·**ErrorCode·AOP**·OpenAPI JWT·API·예외·**주석(Comments)** 컨벤션 |
 | `figma-product.mdc` | false | domain, service, specs | 도메인·BR·와이어프레임 (API 계약은 client-platform) |
 | `client-platform.mdc` | false | controller, service, config, specs | React 앱·스토어·API·인증 (도메인은 figma-product) |
 | `deployment.mdc` | false | yml, Docker, domain, deploy | 배포 가드레일 — 절차는 deploy/README SSOT |
