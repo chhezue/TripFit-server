@@ -20,11 +20,10 @@
 
 - BR-USER-004/002 UI · 정원 hold [#35](https://github.com/Central-MakeUs/TripFit-server/issues/35)
 
-### 확정 (2026-07-21)
+### 확정 (2026-07-21 · #22)
 
-- 방장=생성 전 플로우 · `RESPONDED`만 · `POST /trips/join` 단일 · submit 삭제
-- Skip+0행 → create/join 시 `is_all_free=true` · omit≠`is_all_free` · Hidden 단계적 · prefill=FE · `memberFillRate`
-- 정기=CRUD · 개별=bulk upsert
+- Skip+0행 → **confirm/join** 시 `is_all_free=true` · omit≠`is_all_free` · Hidden 단계적 · prefill=FE · `memberFillRate`
+- 정기=CRUD · 개별=bulk upsert · 구 `schedule/submit` 삭제
 
 ### 확정 (2026-07-21 · #39 amend)
 
