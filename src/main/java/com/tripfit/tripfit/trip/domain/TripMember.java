@@ -93,6 +93,11 @@ public class TripMember extends SoftDeleteEntity {
     this.pinnedAt = pinned ? LocalDateTime.now() : null;
   }
 
+  // JOINED → RESPONDED (#39 schedule confirm)
+  public void markResponded() {
+    this.status = TripMemberStatus.RESPONDED;
+  }
+
   // end_range 경과 시 Pin 자동 해제
   public void clearPin() {
     this.pinned = false;

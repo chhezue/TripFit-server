@@ -41,7 +41,7 @@
 | GET | `/api/v1/users/schedule/personal` | **1단계:** #22 PR에서 `@Hidden` 해제 |
 | PATCH | `/api/v1/users/schedule/personal` | 동일 |
 | GET | `/api/v1/users/schedule/calendar` | 동일 |
-| GET | `/api/v1/trips/{tripId}/members/schedule-calendar` | **2단계 해제 완료** (#39) — OpenAPI 공개 |
+| GET | `/api/v1/trips/{tripId}/members/schedule-calendar` | **2단계 해제 완료** — OpenAPI 공개 |
 
 **이미 노출 / 유지:**
 
@@ -206,7 +206,7 @@ canEnterRoom(user) =
 | 단계 | 공개 |
 |------|------|
 | **1** | `#22` 구현 PR: `is_all_free` · join 재정의 · **submit 삭제** · personal/calendar `@Hidden` **해제** |
-| **2** | 그룹 `members/schedule-calendar` — **#39에서 `@Hidden` 해제 완료** |
+| **2** | 그룹 `members/schedule-calendar` — **`@Hidden` 해제 완료** |
 | — | submit은 **공개하지 않음** (삭제) |
 
 **라우팅:**
