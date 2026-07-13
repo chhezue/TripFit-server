@@ -31,7 +31,7 @@
 
 ### Must Have
 
-- [x] 엔티티 PK: `User`, `RefreshToken`, `Schedule`, `Trip`, `TripMember`, `Recommendation` → `UUID` + `@UuidGenerator`
+- [x] 엔티티 PK: `User`, `RefreshToken`, `RegularSchedule`, `PersonalSchedule`, `Trip`, `TripMember`, `Recommendation` → `UUID` + `@UuidGenerator`
 - [x] FK 컬럼 (`user_id`, `owner_id`, `trip_id` 등) → `UUID`
 - [x] Repository / Service / Controller / DTO / `@AuthorizedUser` / JWT (`sub`) 타입 `Long` → `UUID`
 - [x] Hibernate가 MySQL에서 UUID를 **BINARY(16)이 아닌 CHAR(36)** 으로 매핑되도록 명시 (`@JdbcTypeCode(SqlTypes.CHAR)` 또는 동등)
