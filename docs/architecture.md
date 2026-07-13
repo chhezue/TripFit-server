@@ -30,13 +30,16 @@ com.tripfit.tripfit
 │   ├── client/                     # SocialTokenVerifier*, OAuthProfile, TokenRevocationChecker
 │   └── exception/                  # AuthErrorCode
 ├── user/
-│   ├── domain/                     # User, UserCondition, SocialProvider
-│   └── repository/                 # UserRepository
+│   ├── controller|dto|service|domain|repository|exception   # 프로필·온보딩
+│   └── schedule/                   # feature: 정기·개인 일정
+│       ├── controller|dto|service|domain|repository
+│       └── exception/              # ScheduleErrorCode
 └── trip/
-    └── domain/                     # Trip, TripMember, MemberSchedule, Recommendation, enums
+    ├── controller|dto|domain|repository|exception
+    └── …
 ```
 
-새 기능 추가 시 `com.tripfit.tripfit.{domain}/` 아래에 위 레이어 규칙을 따릅니다.
+새 기능 추가 시 `com.tripfit.tripfit.{domain}/` 레이어 규칙을 따른다. 도메인 안 기능이 커지면 `{domain}/{feature}/`에 동일 레이어를 둘 수 있다 (`user/schedule`). 상세: [`decisions/003-architecture-guide.md`](decisions/003-architecture-guide.md).
 
 ## Layer Rules (도메인 내부)
 
