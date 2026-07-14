@@ -88,6 +88,31 @@ return TripResponse.from(trip);
 // ❌ @GeneratedValue(strategy = GenerationType.IDENTITY) / Long id
 ```
 
+## Enum
+
+Entity·DTO·도메인 값에 **닫힌 집합**(상태·모드·제공자·기간 등)이 생기면 `String` magic value 대신 **`{domain}/domain/`(또는 feature `domain/`) Java enum**으로 분리한다.
+
+| 분리 ✓ | 분리하지 않음 |
+|--------|----------------|
+| API/DB에 노출되는 고정 상수 (`POSSIBLE`, `BASIC`, `GOOGLE`) | 자유 입력 문구, 표시명 |
+| 분기·검증·동등 비교가 필요한 코드 | 콤마 목록 등 **계약이 String인** 필드 (`daysOfWeek`) |
+| 새 상수 추가가 스펙·마이그레이션으로 관리되는 값 | 외부 시스템 opaque 토큰·임의 ID |
+
+**프론트에 enum을 전하는 SSOT (enum 전용 md 파일은 만들지 않음)**
+
+- **계약(값 목록):** OpenAPI `/v3/api-docs` · Swagger UI — enum + `@Schema`가 스키마에 노출됨
+- **의미·정책:** 해당 `docs/specs/`, 필요 시 `docs/product/glossary.md`(한글 UI 라벨)
+- ❌ `docs/enums/*.md` 또는 enum마다 md — 코드·스펙과 **이중 관리·드리프트** 유발. 만들지 않음
+
+```java
+@Schema(description = "연차 신청 가능 시점")
+public enum VacationApplyPeriod {
+  @Schema(description = "상관없음")
+  ANY,
+  // ...
+}
+```
+
 ## OpenAPI @Schema (Entity · DTO · enum)
 
 springdoc OpenAPI 3 — `io.swagger.v3.oas.annotations.media.Schema`
@@ -99,7 +124,7 @@ springdoc OpenAPI 3 — `io.swagger.v3.oas.annotations.media.Schema`
 | `{domain}/dto/` record·class | record/class + **각 컴포넌트·필드** | ✓ (API 노출 DTO) |
 | `common/api/` envelope | record + 필드 | ✓ |
 | verifier 경계 record (`OAuthProfile` 등) | record + 필드 | ✓ |
-| Controller | `@Tag`, `@Operation(summary, description)` | API 추가 시 |
+| Controller | `@Tag`, `@Operation` (아래 양식) | API 추가 시 |
 
 **작성 규칙**
 
@@ -121,6 +146,39 @@ public record LoginRequest(
 		String token
 ) {}
 ```
+
+## OpenAPI @Operation · JWT (Controller)
+
+`OpenApiConfig`에 **`bearer-jwt`** HTTP Bearer 스키마 + **전역 `security`** 가 있다. Swagger UI 자물쇠 = JWT 필요.
+
+| 엔드포인트 | 코드 | Swagger |
+|------------|------|---------|
+| JWT 필요 (`@AuthorizedUser` 사용) | `@Operation(summary, description)`만 — **전역 security 유지** | 자물쇠 ON |
+| JWT 불필요 (login/refresh/logout 등) | `security = {}`로 전역 해제 | 자물쇠 OFF |
+
+**통일 양식**
+
+```java
+// ✅ JWT 필요 — description에는 비즈니스만 (Bearer 문구 반복 금지)
+@Operation(
+		summary = "정기 일정 목록",
+		description = "생성 시각 오름차순. 슬롯은 start/end로 계산된 값")
+@GetMapping("/regular")
+ResponseEntity<?> listRegular(@AuthorizedUser UUID userId) { ... }
+
+// ✅ JWT 불필요 — security = {} 필수
+@Operation(
+		summary = "소셜 로그인",
+		description = "Google/Kakao/Apple 토큰 검증 후 access·refresh 발급",
+		security = {})
+@PostMapping("/login")
+ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) { ... }
+```
+
+- `summary`: 한국어, 한 줄 (동사+대상)
+- `description`: 제약·부작용·쿼리 의미. **인증 여부는 `security`로만** 표현 (`"Bearer 필수"` 문구 금지 — 자물쇠와 중복·불일치 위험)
+- `@AuthorizedUser` 있는 메서드에 `security = {}` 두지 말 것 (정합 깨짐)
+- `SecurityConfig` `permitAll`과 Controller `security = {}`를 **같이** 맞춤
 
 ## Style
 
@@ -168,7 +226,7 @@ ResponseEntity<...> updateProfile(
 - 응답 envelope: `docs/architecture/api-response.md` (확정)
 - 요청 검증: Jakarta Validation (`@Valid`)
 - 예외: `@RestControllerAdvice` + `{ code, message }`
-- 문서: springdoc — `@Tag`, `@Operation(summary, description)` + DTO·Entity `@Schema` (위 OpenAPI 섹션)
+- 문서: springdoc — `@Tag`, `@Operation`(위 **OpenAPI @Operation · JWT**), DTO·Entity·enum `@Schema`, enum은 **Enum** 절
 - Controller 파라미터 스타일: 위 **Controller 메서드 파라미터** 절 준수
 
 ## Configuration

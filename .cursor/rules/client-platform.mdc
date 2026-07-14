@@ -38,7 +38,9 @@ alwaysApply: false
 
 ## 프론트 협업
 
-- API 변경은 OpenAPI(springdoc) 반영 권장
+- API 변경은 OpenAPI(springdoc) 반영 권장 — **enum 값 목록 SSOT는 `/v3/api-docs`(Swagger), enum 전용 md는 두지 않음**
+- 새 enum·상수 의미는 해당 `docs/specs/`(+ 필요 시 `glossary.md` 한글 라벨)에만 적고, 프론트에는 OpenAPI 스키마로 전달
+- JWT 필요 API는 Swagger 자물쇠(`bearer-jwt`)로 구분 — Authorize에 access token 입력
 - 화면 용어: `glossary.md` / Figma — API 필드명과 혼동하지 않기
 
 ## 미정

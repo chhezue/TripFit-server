@@ -368,7 +368,7 @@ Authorization: Bearer <accessToken>
 | nickname | nullable — 소셜 provider 표시명 (prefill). **fallback 없음** — [`007`](../decisions/007-user-profile-onboarding.md) |
 | profile_image_url | nullable — **wave 1(A안):** Google/Kakao provider CDN URL. Apple null. **wave 4(B안):** TripFit S3 — [`006`](../decisions/006-profile-image-url-storage.md) |
 | is_google_calendar_connected | boolean, default false — OAuth 연동 시만 true |
-| is_schedule_registered | boolean, default false — `user_condition` 저장 시만 true |
+| is_schedule_registered | boolean, default false — `regular_schedule` ≥1행 시 true |
 | is_optional_onboarding_completed | boolean, default false — 선택 온보딩 전체 완료 |
 | created_at, updated_at, deleted_at | Soft delete |
 
