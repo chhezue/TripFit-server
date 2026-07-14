@@ -24,7 +24,9 @@ public class TripMemberController {
     this.scheduleService = scheduleService;
   }
 
-  @Operation(summary = "멤버 개인 일정 요약", description = "trip 기간 내 날짜별 슬롯 + uncertain")
+  @Operation(
+      summary = "멤버 개인 일정 요약",
+      description = "trip 희망 기간 내 멤버별 personal_schedule(슬롯3 + uncertain). 정기 펼침 없음")
   @GetMapping("/personal-summary")
   ResponseEntity<ApiResponse<MemberPersonalSummaryResponse>> getPersonalSummary(
       @PathVariable UUID tripId,

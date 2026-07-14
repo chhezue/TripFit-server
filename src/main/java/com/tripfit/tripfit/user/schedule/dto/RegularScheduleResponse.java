@@ -16,7 +16,10 @@ public record RegularScheduleResponse(
     @Schema(description = "표시명", example = "출근")
     String title,
 
-    @Schema(description = "반복 요일", example = "MON,TUE,WED,THU,FRI", nullable = true)
+    @Schema(
+        description = "반복 요일. Weekday 콤마 구분(MON~SUN)",
+        example = "MON,TUE,WED,THU,FRI",
+        nullable = true)
     String daysOfWeek,
 
     @Schema(description = "시작 시각", example = "09:00:00", nullable = true)

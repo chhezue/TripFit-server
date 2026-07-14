@@ -56,7 +56,10 @@ public class RegularSchedule extends BaseTimeEntity {
   @Column(nullable = false)
   private String title;
 
-  @Schema(description = "반복 요일. 콤마 구분", nullable = true, example = "MON,TUE,WED,THU,FRI")
+  @Schema(
+      description = "반복 요일. Weekday 콤마 구분(MON~SUN)",
+      nullable = true,
+      example = "MON,TUE,WED,THU,FRI")
   @Column(name = "days_of_week")
   private String daysOfWeek;
 

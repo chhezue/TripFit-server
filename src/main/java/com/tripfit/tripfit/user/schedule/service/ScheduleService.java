@@ -14,6 +14,7 @@ import com.tripfit.tripfit.trip.repository.TripMemberRepository;
 import com.tripfit.tripfit.trip.repository.TripRepository;
 import com.tripfit.tripfit.user.schedule.domain.PersonalSchedule;
 import com.tripfit.tripfit.user.schedule.domain.RegularSchedule;
+import com.tripfit.tripfit.user.schedule.domain.Weekday;
 import com.tripfit.tripfit.user.domain.User;
 import com.tripfit.tripfit.user.schedule.dto.CreateRegularScheduleRequest;
 import com.tripfit.tripfit.user.schedule.dto.PersonalScheduleResponse;
@@ -90,7 +91,7 @@ public class ScheduleService {
         RegularSchedule.create(
             user,
             request.title().trim(),
-            request.daysOfWeek(),
+            normalizeDaysOfWeek(request.daysOfWeek()),
             request.startTime(),
             request.endTime(),
             request.maxVacationDays(),
@@ -117,7 +118,7 @@ public class ScheduleService {
             .orElseThrow(() -> new TripFitException(ScheduleErrorCode.REGULAR_SCHEDULE_NOT_FOUND));
     schedule.applyUpdate(
         request.title().trim(),
-        request.daysOfWeek(),
+        normalizeDaysOfWeek(request.daysOfWeek()),
         request.startTime(),
         request.endTime(),
         request.maxVacationDays(),
@@ -296,6 +297,7 @@ public class ScheduleService {
   private void validateCreateRegular(CreateRegularScheduleRequest request) {
     validateRegularTimesAndVacation(
         request.title(),
+        request.daysOfWeek(),
         request.startTime(),
         request.endTime(),
         request.maxVacationDays());
@@ -305,6 +307,7 @@ public class ScheduleService {
   private void validateUpdateRegular(UpdateRegularScheduleRequest request) {
     validateRegularTimesAndVacation(
         request.title(),
+        request.daysOfWeek(),
         request.startTime(),
         request.endTime(),
         request.maxVacationDays());
@@ -312,6 +315,7 @@ public class ScheduleService {
 
   private void validateRegularTimesAndVacation(
       String title,
+      String daysOfWeek,
       LocalTime startTime,
       LocalTime endTime,
       Integer maxVacationDays) {
@@ -323,6 +327,20 @@ public class ScheduleService {
       throw new TripFitException(CommonErrorCode.INVALID_INPUT);
     }
     if (startTime == null || endTime == null || !endTime.isAfter(startTime)) {
+      throw new TripFitException(CommonErrorCode.INVALID_INPUT);
+    }
+    try {
+      Weekday.normalizeCsv(daysOfWeek);
+    } catch (IllegalArgumentException ex) {
+      throw new TripFitException(CommonErrorCode.INVALID_INPUT);
+    }
+  }
+
+  // daysOfWeek CSV를 Weekday 기준으로 정규화함 (null/blank → null)
+  private static String normalizeDaysOfWeek(String daysOfWeek) {
+    try {
+      return Weekday.normalizeCsv(daysOfWeek);
+    } catch (IllegalArgumentException ex) {
       throw new TripFitException(CommonErrorCode.INVALID_INPUT);
     }
   }

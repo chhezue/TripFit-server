@@ -43,7 +43,7 @@ public record UserSummaryResponse(
         example = "false") boolean isGoogleCalendarConnected,
 
     @Schema(
-        description = "user_condition 저장 여부",
+        description = "정기 일정(regular_schedule) ≥1행 등록 여부",
         example = "false") boolean isScheduleRegistered,
 
     @Schema(

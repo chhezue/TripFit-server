@@ -142,6 +142,50 @@ class ScheduleServiceTest {
   }
 
   @Test
+  void createRegular_rejectsInvalidWeekday() {
+    assertThatThrownBy(
+        () -> scheduleService.createRegular(
+            USER_ID,
+            new CreateRegularScheduleRequest(
+                "출근",
+                "MON,FOO",
+                LocalTime.of(9, 0),
+                LocalTime.of(18, 0),
+                null,
+                null,
+                null,
+                null)))
+        .isInstanceOf(TripFitException.class);
+  }
+
+  @Test
+  void createRegular_normalizesDaysOfWeek() {
+    when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+    when(regularScheduleRepository.save(any(RegularSchedule.class)))
+        .thenAnswer(
+            invocation -> {
+              RegularSchedule s = invocation.getArgument(0);
+              s.setId(REGULAR_ID);
+              return s;
+            });
+
+    RegularScheduleResponse response =
+        scheduleService.createRegular(
+            USER_ID,
+            new CreateRegularScheduleRequest(
+                "출근",
+                " mon, tue ",
+                LocalTime.of(9, 0),
+                LocalTime.of(18, 0),
+                null,
+                null,
+                null,
+                null));
+
+    assertThat(response.daysOfWeek()).isEqualTo("MON,TUE");
+  }
+
+  @Test
   void updateRegular_recalculatesSlotsFromTimes() {
     RegularSchedule existing =
         RegularSchedule.create(

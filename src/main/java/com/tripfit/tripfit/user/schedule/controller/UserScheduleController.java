@@ -40,7 +40,7 @@ public class UserScheduleController {
   }
 
   // JWT 사용자의 정기 일정 목록을 조회함
-  @Operation(summary = "정기 일정 목록")
+  @Operation(summary = "정기 일정 목록", description = "생성 시각 오름차순. 슬롯은 start/end로 계산된 값")
   @GetMapping("/regular")
   ResponseEntity<ApiResponse<RegularScheduleListResponse>> listRegular(
       @AuthorizedUser UUID userId) {
@@ -50,7 +50,7 @@ public class UserScheduleController {
   // JWT 사용자의 정기 일정을 생성함 (슬롯은 시각으로 계산)
   @Operation(
       summary = "정기 일정 생성",
-      description = "startTime/endTime으로 슬롯을 계산해 저장")
+      description = "startTime/endTime으로 슬롯 계산 후 저장. daysOfWeek는 Weekday(MON~SUN) 콤마 CSV")
   @PostMapping("/regular")
   ResponseEntity<ApiResponse<RegularScheduleResponse>> createRegular(
       @AuthorizedUser UUID userId,
@@ -62,7 +62,7 @@ public class UserScheduleController {
   // JWT 사용자의 정기 일정 전체를 수정함 (start/end 변경 시 슬롯 재계산)
   @Operation(
       summary = "정기 일정 전체 수정",
-      description = "title·요일·시각·연차 필드를 갱신. start/end 변경 시 슬롯 재계산")
+      description = "title·요일·시각·연차 전체 갱신. start/end 변경 시 슬롯 재계산")
   @PatchMapping("/regular/{id}")
   ResponseEntity<ApiResponse<RegularScheduleResponse>> updateRegular(
       @AuthorizedUser UUID userId,
@@ -73,7 +73,9 @@ public class UserScheduleController {
   }
 
   // JWT 사용자의 정기 일정을 삭제하고 등록 플래그를 재계산함
-  @Operation(summary = "정기 일정 삭제")
+  @Operation(
+      summary = "정기 일정 삭제",
+      description = "본인 소유만 삭제. 남은 정기 일정이 없으면 isScheduleRegistered=false")
   @DeleteMapping("/regular/{id}")
   ResponseEntity<Void> deleteRegular(
       @AuthorizedUser UUID userId,
@@ -83,7 +85,9 @@ public class UserScheduleController {
   }
 
   // JWT 사용자의 기간 내 개인 일정을 조회함
-  @Operation(summary = "개인 일정 조회", description = "startDate·endDate 필수. 날짜당 슬롯3 + uncertain")
+  @Operation(
+      summary = "개인 일정 조회",
+      description = "startDate·endDate 필수. 날짜당 슬롯3 + uncertain")
   @GetMapping("/personal")
   ResponseEntity<ApiResponse<PersonalScheduleResponse>> getPersonal(
       @AuthorizedUser UUID userId,
@@ -94,7 +98,9 @@ public class UserScheduleController {
   }
 
   // JWT 사용자의 개인 일정을 날짜별로 bulk upsert함
-  @Operation(summary = "개인 일정 bulk upsert")
+  @Operation(
+      summary = "개인 일정 bulk upsert",
+      description = "날짜별 슬롯·uncertain 생성 또는 갱신 후 요청 기간 목록 반환")
   @PatchMapping("/personal")
   ResponseEntity<ApiResponse<PersonalScheduleResponse>> upsertPersonal(
       @AuthorizedUser UUID userId,

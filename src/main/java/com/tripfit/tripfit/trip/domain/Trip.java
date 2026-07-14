@@ -92,6 +92,14 @@ public class Trip extends SoftDeleteEntity {
   @Column(name = "cancel_reason")
   private String cancelReason;
 
+  @Schema(
+      description = "마지막 추천 모드. 추천 API 저장 시 갱신 (BR-TRIP-005)",
+      nullable = true,
+      example = "BASIC")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "last_recommendation_mode")
+  private RecommendationMode lastRecommendationMode;
+
   public Trip(
       User owner,
       String name,

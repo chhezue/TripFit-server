@@ -4,6 +4,7 @@ import com.tripfit.tripfit.trip.domain.ScheduleStatus;
 import com.tripfit.tripfit.trip.domain.SlotStatuses;
 import com.tripfit.tripfit.user.schedule.domain.PersonalSchedule;
 import com.tripfit.tripfit.user.schedule.domain.RegularSchedule;
+import com.tripfit.tripfit.user.schedule.domain.Weekday;
 import com.tripfit.tripfit.user.schedule.dto.ScheduleCalendarResponse.CalendarDayResponse;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -80,20 +80,16 @@ final class ScheduleCalendarResolver {
     return parseDaysOfWeek(daysOfWeek).contains(dayOfWeek);
   }
 
-  // "MON,TUE,WED" 형태를 DayOfWeek 집합으로 파싱함 (공백·대소문자 무시)
+  // "MON,TUE,WED" 형태를 DayOfWeek 집합으로 파싱함 (잘못된 토큰은 스킵 — 저장본 호환)
   static Set<DayOfWeek> parseDaysOfWeek(String daysOfWeek) {
     Set<DayOfWeek> days = EnumSet.noneOf(DayOfWeek.class);
     if (daysOfWeek == null || daysOfWeek.isBlank()) {
       return days;
     }
     for (String token : daysOfWeek.split(",")) {
-      String trimmed = token.trim().toUpperCase(Locale.ROOT);
-      if (trimmed.isEmpty()) {
-        continue;
-      }
-      DayOfWeek parsed = parseDayToken(trimmed);
-      if (parsed != null) {
-        days.add(parsed);
+      Weekday weekday = Weekday.fromToken(token);
+      if (weekday != null) {
+        days.add(weekday.toDayOfWeek());
       }
     }
     return days;
@@ -138,18 +134,5 @@ final class ScheduleCalendarResolver {
 
   private static ScheduleStatus nullToPossible(ScheduleStatus status) {
     return status != null ? status : ScheduleStatus.POSSIBLE;
-  }
-
-  private static DayOfWeek parseDayToken(String token) {
-    return switch (token) {
-      case "MON", "MONDAY" -> DayOfWeek.MONDAY;
-      case "TUE", "TUESDAY" -> DayOfWeek.TUESDAY;
-      case "WED", "WEDNESDAY" -> DayOfWeek.WEDNESDAY;
-      case "THU", "THURSDAY" -> DayOfWeek.THURSDAY;
-      case "FRI", "FRIDAY" -> DayOfWeek.FRIDAY;
-      case "SAT", "SATURDAY" -> DayOfWeek.SATURDAY;
-      case "SUN", "SUNDAY" -> DayOfWeek.SUNDAY;
-      default -> null;
-    };
   }
 }

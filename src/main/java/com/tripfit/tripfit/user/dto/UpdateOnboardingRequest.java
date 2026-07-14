@@ -10,7 +10,7 @@ public record UpdateOnboardingRequest(
         example = "false") Boolean isGoogleCalendarConnected,
 
     @Schema(
-        description = "user_condition 저장 시 true. 미전송 시 유지",
+        description = "regular_schedule ≥1행 시 true. 미전송 시 유지",
         nullable = true,
         example = "false") Boolean isScheduleRegistered,
 

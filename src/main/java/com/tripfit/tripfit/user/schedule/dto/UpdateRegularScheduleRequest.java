@@ -18,7 +18,10 @@ public record UpdateRegularScheduleRequest(
     @NotBlank
     String title,
 
-    @Schema(description = "반복 요일. 콤마 구분", example = "MON,TUE,WED,THU,FRI", nullable = true)
+    @Schema(
+        description = "반복 요일. Weekday 콤마 구분(MON~SUN). 생략 가능",
+        example = "MON,TUE,WED,THU,FRI",
+        nullable = true)
     String daysOfWeek,
 
     @Schema(

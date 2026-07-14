@@ -81,7 +81,7 @@ public class User extends SoftDeleteEntity {
   @Column(name = "is_google_calendar_connected", nullable = false)
   private boolean isGoogleCalendarConnected;
 
-  @Schema(description = "유저의 Schedule(근무·연차 정보) 저장 여부", example = "false")
+  @Schema(description = "정기 일정(regular_schedule) ≥1행 등록 여부", example = "false")
   @Column(name = "is_schedule_registered", nullable = false)
   private boolean isScheduleRegistered;
 
