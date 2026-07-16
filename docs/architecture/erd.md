@@ -225,7 +225,7 @@ User 소유. **날짜당 1행** — 오전/오후/저녁 가능·불가 + 날짜
 |------|------|----------|-------|------|
 | id | char(36) | N | PK | UUID v4 |
 | owner_id | char(36) | N | FK → user.id | 방장 |
-| name | varchar | N | | 최대 20자 `[제안]` |
+| name | varchar | N | | 최대 **15자** (BR-TRIP-001) |
 | destination | varchar | Y | | 여행지 MVP In |
 | start_range | date | N | | 희망 기간 시작 |
 | end_range | date | N | | 희망 기간 종료 |
@@ -330,11 +330,8 @@ User 소유. **날짜당 1행** — 오전/오후/저녁 가능·불가 + 날짜
 
 | 항목 | 내용 |
 |------|------|
-| `[미정]` | trip.status ↔ UI(응답대기중·조율중·일정 확정)·**`TERMINATED` 전환 조건** |
-| `[미정]` | BR-TRIP-005 모드별 가중치, BR-TRIP-012 동점 |
-| `[미정]` | BR-TRIP-010 변경 시 NOTI-003 |
-| `[미정]` | 정기 일정 복수 행의 연차 필드 집계 (#13) |
-| wave 2 | `#11` 정기/개별 분리, `is_pinned`(엔티티), `TERMINATED`, `deleted_at`(trip_member — #12) |
+| `[미정]` | BR-TRIP-005 가중치 · BR-TRIP-012 동점 · TERMINATED **전환 시점**(lazy vs 배치) |
+| wave 2 잔여 | `#12` trip CRUD · members schedule-calendar · `#13` 추천 |
 | wave 4 | `trip.cancel_reason` VOC API·UI |
 
 ## 기획 메모 (NotebookLM + 확정)

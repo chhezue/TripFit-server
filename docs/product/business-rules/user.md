@@ -10,7 +10,7 @@
 | **BR-USER-004** | 회원 탈퇴 | 탈퇴 요청 시 | 확인 후 탈퇴; 본인이 생성한 여행방 데이터 삭제 | `[미정]` 진행 중 여행방 차단 여부 |
 | **BR-USER-005** | 알림 허용 | 마이페이지 알림 설정 | on/off 저장, off 시 푸시 미발송 (BR-NOTI-*) | `[미정]` 필수 알림 예외 |
 | **BR-USER-006** | 정기 일정 등록 게이트 | 여행방 일정 응답 진입 시 | 온보딩 skip(`isScheduleRegistered=false`) → **`regular_schedule` ≥1행** 후 개별 일정 입력 | 미등록 시 차단 |
-| **BR-USER-007** | 여행방 참여 완료 | trip 「일정 제출하기」 | `trip_member.status=RESPONDED`. 일정 데이터는 User `personal_schedule` | 링크만으로 미완료 |
+| **BR-USER-007** | 여행방 참여 완료 | trip 「일정 제출하기」 | `trip_member.status=RESPONDED`. 일정 데이터는 User 전역 `regular_schedule` + `personal_schedule` (effective는 #17 resolve). **링크 클릭만으로 미완료** | 링크만으로 미완료 |
 | **BR-USER-008** | 전역 일정 연동 | 개별·정기 일정 변경 시 | **참여 중 모든 여행방**에 동일 데이터 반영 (trip FK 없음) | — |
 
 ## 보조 규칙 (Figma·PRD)

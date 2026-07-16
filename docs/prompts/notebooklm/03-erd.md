@@ -71,7 +71,7 @@
 **enum·상태값 (문서에 명시):**
 - `member_schedule.time_slot`: MORNING, AFTERNOON, EVENING
 - `member_schedule.status`: POSSIBLE, IMPOSSIBLE, TBD
-- `trip.status`: ONGOING, CONFIRMED, CANCELED (UI 상태 매핑은 `[미정]`)
+| `trip.status` | `ONGOING`(조율 중), `CONFIRMED`, `CANCELED`, `TERMINATED`(종료) — UI 매핑: `figma-product.mdc` |
 - `trip_member.role`: OWNER, MEMBER
 - `trip_member.status`: JOINED, RESPONDED
 - `user.provider`: KAKAO, GOOGLE, APPLE

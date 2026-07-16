@@ -47,7 +47,7 @@ public class Trip extends SoftDeleteEntity {
   @JoinColumn(name = "owner_id", nullable = false)
   private User owner;
 
-  @Schema(description = "여행방 이름", example = "제주도 3박4일")
+  @Schema(description = "여행방 이름 (최대 15자)", example = "제주도 3박4일", maxLength = 15)
   @Column(nullable = false)
   private String name;
 

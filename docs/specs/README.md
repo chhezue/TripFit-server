@@ -21,11 +21,23 @@
 | 스펙 | 상태 | 범위 | 선행 |
 |------|------|------|------|
 | [`schedule-unified.md`](schedule-unified.md) | **Approved** (#11) | 정기(`regular_schedule`)·개별(`personal_schedule`) 2테이블 | wave 1 auth·onboarding |
-| [`schedule-calendar-resolve.md`](schedule-calendar-resolve.md) | **Approved** (S1·R2=A·A1=730일) · **#17** | regular+personal → 날짜별 effective 달력 조회 | schedule-unified (#11) |
-| [`trip-room-api.md`](trip-room-api.md) | Draft | 여행방 CRUD·참여·Pin·일정 제출 | schedule-unified |
+| [`schedule-calendar-resolve.md`](schedule-calendar-resolve.md) | **Implemented** (#17) · S1·R2=A·A1=730일 | regular+personal → 날짜별 effective 달력 조회 | schedule-unified (#11) |
+| [`trip-room-api.md`](trip-room-api.md) | **Approved** (#12) | 여행방 CRUD·참여·Pin·일정 제출·members schedule-calendar | schedule-unified · #17 |
 | [`trip-recommendation.md`](trip-recommendation.md) | Draft | 추천 4모드·TOP 3·확정·취소 | 위 2개 |
 
-**구현 순서:** uuid-primary-key → schedule-unified(완료) → trip-room-api → trip-recommendation (room의 PATCH는 recommendation hard DELETE hook 필요).
+**구현 순서:** uuid-primary-key → schedule-unified(#11) → calendar resolve(#17) → trip-room-api(#12) → trip-recommendation(#13)
+
+## GitHub 이슈 매핑 (wave 2)
+
+| 이슈 | 스펙 | 상태 |
+|------|------|------|
+| #11 | schedule-unified | Closed |
+| #17 | schedule-calendar-resolve (본인 calendar) | Closed |
+| #12 | trip-room-api | Open |
+| #13 | trip-recommendation | Open |
+| #19 | join 미리보기 (Out) | Open |
+| #20 | 참여자 내보내기 (Out) | Open |
+| #21 | 알림·카카오 (wave 3) | Open |
 
 ## 완료 후
 

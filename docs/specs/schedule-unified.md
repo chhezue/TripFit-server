@@ -75,7 +75,7 @@ user/schedule/
 | GET/POST | `/api/v1/users/schedule/regular` | 목록 / 생성(start·end → 슬롯 계산) |
 | PATCH/DELETE | `/api/v1/users/schedule/regular/{id}` | 전체 수정(start·end → 슬롯 재계산) / 삭제 |
 | GET/PATCH | `/api/v1/users/schedule/personal` (`startDate`·`endDate` query on GET). **BR-USER-006:** 정기 0행이면 403 `REGULAR_SCHEDULE_REQUIRED` |
-| GET | `/api/v1/trips/{tripId}/members/personal-summary` |
+| GET | `/api/v1/trips/{tripId}/members/personal-summary` | **deprecate** → `members/schedule-calendar` (D2 T1, #12) |
 
 > 폐기: `/schedule/availability`, per-slot TBD, `note`
 

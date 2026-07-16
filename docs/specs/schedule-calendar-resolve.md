@@ -4,7 +4,7 @@
 > implements: BR-TRIP-002, BR-TRIP-003, BR-TRIP-004, BR-USER-006, BR-USER-008  
 > related: [`schedule-unified.md`](schedule-unified.md), [`trip-room-api.md`](trip-room-api.md), [`trip-recommendation.md`](trip-recommendation.md)  
 > deferred: 그룹 달력 **집계·시각화 UI** (wave 3), Google Calendar OAuth (wave 4), `uncertain`→추천 TBD 취급 (#13)  
-> 상태: **Approved** — 병합 S1+R2=A · sparse · effective-only · **A1=730일(약 2년)** 확정  
+> 상태: **Implemented** (#17) — 병합 S1+R2=A · sparse · effective-only · **A1=730일(약 2년)** 확정  
 > MVP: In scope (일정 응답·추천 입력 데이터) / 그룹 달력 UX는 wave 3
 
 ## 목표
@@ -226,7 +226,7 @@ null(미설정) 슬롯 → 합성에서 무시 (의견 없음). 해당 슬롯에
 |--------|------|------|
 | GET | `/api/v1/trips/{tripId}/members/schedule-calendar` | JWT + member |
 
-기존 `personal-summary`와의 관계 **`[미정]` T1/T2/T3** (권장 T1: calendar로 대체 후 summary deprecate).  
+기존 `personal-summary`와의 관계 **T1 확정** (#12 — `members/schedule-calendar` 추가, summary deprecate).  
 trip CRUD 전이면 **①만** 구현.
 
 ### 유지 (변경 없음)
@@ -258,7 +258,8 @@ trip CRUD 전이면 **①만** 구현.
 - [x] `GET /api/v1/users/schedule/calendar`
 - [x] OpenAPI `@Schema`
 - [x] 기간 상한 730일 검증
-- [ ] trip 이후 members schedule-calendar (+ summary 정리) — **#12**
+- [x] `GET /api/v1/users/schedule/calendar` (#17)
+- [ ] `GET /api/v1/trips/{tripId}/members/schedule-calendar` — **#12** (T1 · summary deprecate)
 
 ### Nice to Have
 
@@ -343,7 +344,7 @@ function combineRegularsImpossibleWins(regulars):
 - [x] 본 스펙 **Approved** 후 코드  
 - [x] `./gradlew test` (`user.schedule.*`)  
 - [x] 이슈 #17 체크리스트 갱신  
-- [ ] PR · Implemented 상태 표기
+- [x] `main`에 반영됨 (PR empty — calendar 커밋이 이미 main에 존재, 2026-07-15 확인)
 
 ---
 
@@ -365,7 +366,7 @@ function combineRegularsImpossibleWins(regulars):
 | ID | 항목 | 선택지 / 질문 | 제안 | 상태 |
 |----|------|---------------|------|------|
 | **A1** | calendar **기간 상한** | **확정: 730일 (약 2년)** | `MAX_CALENDAR_RANGE_DAYS=730` | **확정** |
-| **A2** | `personal-summary` vs `schedule-calendar` | T1 대체 / T2 병행 / T3 브레이킹 변경 | **T1** (summary deprecate) | `[미정]` — #12와 협의 |
+| **A2** | `personal-summary` vs `schedule-calendar` | T1 대체 | **T1 확정** (#12 — 멤버 전원 effective) |
 | **A3** | **타임존·날짜 경계** | `LocalDate` only vs zone 포함 | **캘린더 일자(존 없음)** — 요청/응답 모두 date | 합의 권장 (문서에 박기) |
 | **A4** | **`holidayRest`를 calendar에 반영?** | wave 2 Out / 공휴일 테이블 후 반영 | **wave 2 Out** — 요일만. 공휴일은 #13·후속 | 확정 방향(문서) · 프론트에 “공휴일≠휴무 자동” 고지 |
 | **A5** | **`VacationApplyPeriod`를 calendar에 반영?** | 슬롯만 / “신청 불가 기간” 표시 | **슬롯만** (calendar). 신청 가능 여부는 제출·추천 | 확정 방향 |
@@ -387,7 +388,7 @@ function combineRegularsImpossibleWins(regulars):
 | # | 항목 | 비고 |
 |---|------|------|
 | 1 | A1 기간 상한 | **확정 730일** |
-| 2 | A2 summary 정리 | #12와 함께 |
+| 2 | A2 summary → calendar | **T1 확정** (#12) |
 | 3 | A6 추천 uncertain | #13 |
 | 4 | A7 source | Nice |
 
@@ -419,4 +420,5 @@ function combineRegularsImpossibleWins(regulars):
 | 2026-07-13 | Draft 초안 |
 | 2026-07-14 | S1·sparse·effective-only 확정 |
 | 2026-07-14 | R2=A 확정 · 리스크 표 |
-| 2026-07-14 | **Approved** · A1=730일(2년) · 본인 calendar 구현 · #17 |
+| 2026-07-14 | **Approved** · A1=730일 · 본인 calendar · #17 |
+| 2026-07-17 | A2 T1 확정 · members calendar → #12 |
