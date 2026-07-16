@@ -70,6 +70,7 @@
 | 파일 | 조치 |
 |------|------|
 | [`007-user-profile-onboarding.md`](../decisions/007-user-profile-onboarding.md) | `isScheduleRegistered`·skip → `[미定]` amend · 본 스펙 링크 |
+| [`008-trip-authorization-guard.md`](../decisions/008-trip-authorization-guard.md) | `@TripMemberOnly`/`@TripOwnerOnly` + Interceptor 권한 설계안 (제안) — submit·members 권한과 함께 확정 |
 
 ### C. 제품 (`docs/product/`)
 
@@ -143,6 +144,7 @@
 - [ ] **personal 수정** 시 RESPONDED **되돌림** 여부
 - [ ] **submit API** 유지·삭제·join 시 자동 RESPONDED 중 선택
 - [ ] `isScheduleRegistered` — DB boolean vs `regular_schedule` exists 파생만
+- [ ] **여행방 권한 레이어** — Service 검증 유지 vs `@TripMemberOnly`/`@TripOwnerOnly` + Interceptor 도입 ([decisions/008](../decisions/008-trip-authorization-guard.md))
 
 ---
 
@@ -158,3 +160,4 @@
 | 날짜 | 변경 |
 |------|------|
 | 2026-07-17 | `[미定]` 에스컬레이션 · OpenAPI Hidden · 수정 인벤토리 초안 |
+| 2026-07-16 | 여행방 권한 가드 설계안([decisions/008](../decisions/008-trip-authorization-guard.md)) 추가 · #22 범위 포함 |
