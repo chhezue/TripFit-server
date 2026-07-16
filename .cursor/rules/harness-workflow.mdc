@@ -72,3 +72,8 @@ alwaysApply: true
 
 - API base URL: `https://api.tripfit.online`
 - 상세: `docs/decisions/002-domain-split-vercel-api.md`, `deploy/README.md`
+
+## Superpowers
+
+- 진입·스킬 매핑: `.cursor/rules/superpowers-workflow.mdc`
+- ⛔ 문서·스펙 정합은 Superpowers보다 **본 파일 최우선** 섹션이 우선

@@ -14,6 +14,7 @@ Cursor가 이 저장소에서 작업할 때 참조하는 **프로젝트 전용 A
 │   └── block-dangerous.sh
 ├── rules/                 ← 상황별 AI 규칙 (.mdc)
 │   ├── harness-workflow.mdc
+│   ├── superpowers-workflow.mdc
 │   ├── spring-boot-java.mdc
 │   ├── figma-product.mdc
 │   ├── client-platform.mdc
@@ -43,6 +44,7 @@ Cursor가 이 저장소에서 작업할 때 참조하는 **프로젝트 전용 A
 | 파일 | `alwaysApply` | glob | 요약 |
 |------|---------------|------|------|
 | `harness-workflow.mdc` | ✅ true | — | 계획 → 승인 → 구현 → 검증 전체 워크플로 |
+| `superpowers-workflow.mdc` | ✅ true | — | Superpowers 스킬 트리거·하네스 우선순위 |
 | `spring-boot-java.mdc` | false | `**/*.java` | 레이어·enum·Entity·OpenAPI JWT·API·예외 컨벤션 |
 | `figma-product.mdc` | false | domain, service, specs | 도메인·BR·와이어프레임 (API 계약은 client-platform) |
 | `client-platform.mdc` | false | controller, service, config, specs | React 앱·스토어·API·인증 (도메인은 figma-product) |
@@ -56,13 +58,30 @@ Cursor가 이 저장소에서 작업할 때 참조하는 **프로젝트 전용 A
 3. 파일 타입별 → `globs` + `alwaysApply: false`
 4. 반복되는 실수가 있으면 해당 규칙 파일에 짧게 추가
 
-## Skills (`skills/`)
+## Skills
 
 에이전트가 **특정 요청**을 받으면 스킬 파일을 읽고 단계를 따릅니다.
 
+### 로컬 (`.cursor/skills/`)
+
 | 스킬 | 트리거 예시 | 산출물 |
 |------|-------------|--------|
-| `specify` | 새 기능, 리팩터 계획, 아키텍처 결정 | `docs/specs/{feature}.md` |
+| `specify` | 새 기능, 리팩터 계획, 아키텍처 결정 | `docs/specs/{feature}.md` (**스펙 SSOT**) |
+
+### Superpowers (Cursor 플러그인)
+
+| 스킬 | TripFit에서 |
+|------|-------------|
+| `using-superpowers` | 매 세션·턴 진입 |
+| `brainstorming` | wave 신규·모호한 요구 (Approved 스펙 있으면 생략) |
+| `systematic-debugging` | 버그·CI 실패 |
+| `verification-before-completion` | 완료·PR 전 |
+| `executing-plans` | Approved 스펙 다단계 구현 (#12 등) |
+| `writing-plans` | specify **대체 ❌** · 큰 작업 계획만 |
+
+**워크플로:** `wave 확인 → (brainstorming) → specify/Approved → 구현 → ./gradlew test → verification → gh issue/PR`
+
+상세: `.cursor/rules/superpowers-workflow.mdc`
 
 템플릿·참고 문서는 `skills/{name}/references/`에 둡니다.
 
@@ -87,7 +106,8 @@ docs/README.md     → 기획·아키텍처·스펙 문서 인덱스
 deploy/README.md   → Docker·EC2 배포
 .dev/README.md     → 임시 세션 로그 (장기 문서는 docs/로)
 .cursor/rules/     → 어떻게 코딩·배포·검증하는지 (행동 규칙)
-.cursor/skills/    → 큰 작업의 단계별 절차 (워크플로)
+  harness-workflow.mdc, superpowers-workflow.mdc
+.cursor/skills/    → 큰 작업의 단계별 절차 (specify = 스펙 SSOT)
 docs/specs/        → 기능별 설계 산출물 (specify 스킬 결과)
 ```
 
