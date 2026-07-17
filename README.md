@@ -40,7 +40,7 @@ AI 에이전트(그리고 신규 합류자)가 **추측하지 않고** 일관되
 | [`docs/architecture.md`](docs/architecture.md) | 레이어·패키지·설정·DB 요약 |
 | [`docs/decisions/`](docs/decisions) | 인프라·아키텍처 확정 (ADR) |
 | [`deploy/README.md`](deploy/README.md) | Docker·EC2 배포 SSOT |
-| [`.github/README.md`](.github/README.md) | 브랜치·커밋·PR 규약 |
+| [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md) | 브랜치·커밋·PR 규약 |
 
 ## 로컬 실행
 
@@ -57,5 +57,5 @@ docker compose up -d      # MySQL만 (로컬 DB)
 ## Conventions
 
 - 패키지: `com.tripfit.tripfit` — 도메인 기반 레이어드 (`{domain}/controller|dto|service|domain|repository|client`, 공통 `common/`)
-- 커밋: `{Type}: {한글 설명}` (Type 첫 글자 대문자) — 상세 [`.github/README.md`](.github/README.md)
+- 커밋: `{Type}: {한글 설명}` (Type 첫 글자 대문자) — 상세 [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md)
 - 범위 밖 리팩터링·포맷 변경 금지, 비밀값(`.env`·API 키)은 커밋 금지

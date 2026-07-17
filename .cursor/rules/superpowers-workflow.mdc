@@ -24,7 +24,7 @@ harness-workflow ⛔ (문서·스펙 정합)  >  TripFit specify  >  Superpowers
 | Approved 스펙 구현 (#12 등) | `executing-plans` (또는 단계별 구현) | 스펙·GitHub 이슈 완료 기준 |
 | 버그·테스트 실패 | `systematic-debugging` | `./gradlew test`로 재현 |
 | “완료/통과” 선언 전 | `verification-before-completion` | `./gradlew test` + 이슈·스펙 체크리스트 |
-| PR·머지 전 (요청 시) | `requesting-code-review` | `.github/README.md` |
+| PR·머지 전 (요청 시) | `requesting-code-review` | `.github/CONTRIBUTING.md` |
 | 독립 작업 병렬 | `dispatching-parallel-agents` | Cursor `Task`/`explore`와 중복 시 택1 |
 
 ## TripFit과 겹칠 때
