@@ -110,8 +110,8 @@ class UserControllerTest {
                 null,
                 SocialProvider.GOOGLE,
                 false,
-                false,
-                true));
+                true,
+                false));
 
     mockMvc
         .perform(
@@ -138,36 +138,5 @@ class UserControllerTest {
                         """))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.code").value("INVALID_INPUT"));
-  }
-
-  @Test
-  void patchOnboarding_skipOnly_returnsUpdatedUser() throws Exception {
-    when(
-        userProfileService
-            .updateOnboarding(eq(UUID.fromString("550e8400-e29b-41d4-a716-446655440001")), any()))
-        .thenReturn(
-            new UserSummaryResponse(
-                UUID.fromString("550e8400-e29b-41d4-a716-446655440001"),
-                "user@example.com",
-                null,
-                null,
-                "홍길동",
-                null,
-                SocialProvider.GOOGLE,
-                false,
-                false,
-                true));
-
-    mockMvc
-        .perform(
-            patch("/api/v1/users/onboarding")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                        {"isOptionalOnboardingCompleted":true}
-                        """))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.isOptionalOnboardingCompleted").value(true))
-        .andExpect(jsonPath("$.data.isGoogleCalendarConnected").value(false));
   }
 }

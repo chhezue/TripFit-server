@@ -6,7 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "사용자 요약 (login · GET /auth/me · PATCH profile/onboarding 공통)")
+@Schema(
+    description = "사용자 요약 (login · GET /auth/me · PATCH /users/profile · PATCH /users/my-page 공통)")
 public record UserSummaryResponse(
     @Schema(description = "TripFit 사용자 ID (UUID v4)",
         example = "550e8400-e29b-41d4-a716-446655440000") UUID id,
@@ -39,15 +40,23 @@ public record UserSummaryResponse(
     @Schema(description = "로그인에 사용한 소셜 제공자") SocialProvider provider,
 
     @Schema(
-        description = "Google Calendar OAuth 연동 여부. 연동 성공 시만 true",
+        description = "Google Calendar OAuth 연동 여부. user.is_google_calendar_connected 컬럼 SSOT",
         example = "false") boolean isGoogleCalendarConnected,
 
     @Schema(
-        description = "정기 일정(regular_schedule) ≥1행 등록 여부",
-        example = "false") boolean isScheduleRegistered,
+        description = """
+            사전 일정 존재 여부 (파생·DB 컬럼 없음). SSOT: regular_schedule OR personal_schedule row ≥1.
+            조회 시마다 계산(login/me/profile). true 전환: POST regular 첫 생성 또는 PATCH personal 첫 저장.
+            false 전환: 해당 kind row 전부 삭제 후 둘 다 0건. 일정 CRUD 응답에는 미포함 — 갱신값은 GET /auth/me 등 재호출.
+            """,
+        example = "false") boolean hasPreSchedule,
 
     @Schema(
-        description = "선택 온보딩 전체 완료 여부",
-        example = "false") boolean isOptionalOnboardingCompleted
+        description = """
+            전부 free 선언 (user.is_all_free). default false=미입력.
+            방 입장: hasPreSchedule OR isAllFree. Skip+0행 시 create/join에서 true.
+            docs/specs/schedule-participation-onboarding.md D-JOIN-ENTRY
+            """,
+        example = "false") boolean isAllFree
 ) {
 }

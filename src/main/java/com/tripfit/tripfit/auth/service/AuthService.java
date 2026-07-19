@@ -13,7 +13,7 @@ import com.tripfit.tripfit.user.domain.SocialProvider;
 import com.tripfit.tripfit.user.domain.User;
 import com.tripfit.tripfit.user.dto.UserSummaryResponse;
 import com.tripfit.tripfit.user.repository.UserRepository;
-import com.tripfit.tripfit.user.service.UserSummaryMapper;
+import com.tripfit.tripfit.user.service.UserSummaryService;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,15 +29,19 @@ public class AuthService {
 
   private final RefreshTokenService refreshTokenService;
 
+  private final UserSummaryService userSummaryService;
+
   public AuthService(
       SocialTokenVerifierRegistry verifierRegistry,
       UserRepository userRepository,
       JwtService jwtService,
-      RefreshTokenService refreshTokenService) {
+      RefreshTokenService refreshTokenService,
+      UserSummaryService userSummaryService) {
     this.verifierRegistry = verifierRegistry;
     this.userRepository = userRepository;
     this.jwtService = jwtService;
     this.refreshTokenService = refreshTokenService;
+    this.userSummaryService = userSummaryService;
   }
 
   // 소셜 토큰을 검증하고 사용자 세션용 토큰 묶음을 발급함
@@ -50,14 +54,14 @@ public class AuthService {
     // 2. 소셜 프로필 기준으로 사용자를 조회하거나 신규 저장함
     User user = upsertUser(profile);
 
-    // 3. 로그인 세션에 필요한 액세스 토큰과 리프레시 토큰을 발급함
+    // 3. 액세스·리프레시 발급 — user.hasPreSchedule은 toSummary()가 일정 EXISTS로 파생 (user 컬럼 아님)
     String accessToken = jwtService.createAccessToken(user.getId());
     RefreshToken refreshToken = refreshTokenService.create(user.getId());
     return new LoginResponse(
         accessToken,
         refreshToken.getToken(),
         jwtService.getAccessExpirationSeconds(),
-        UserSummaryMapper.toSummary(user));
+        userSummaryService.toSummary(user));
   }
 
   // 리프레시 토큰으로 새로운 액세스 토큰을 재발급함
@@ -85,14 +89,15 @@ public class AuthService {
     refreshTokenService.delete(refreshTokenValue);
   }
 
-  // JWT에 담긴 userId로 현재 로그인 사용자 프로필을 조회함
+  // JWT userId → UserSummary — hasPreSchedule은 regular/personal EXISTS 파생 (D-JOIN-3, 일정 CRUD 후 me
+  // 재조회)
   @Transactional(readOnly = true)
   public UserSummaryResponse getCurrentUser(UUID userId) {
     User user =
         userRepository
             .findById(userId)
             .orElseThrow(() -> new TripFitException(AuthErrorCode.AUTH_FORBIDDEN));
-    return UserSummaryMapper.toSummary(user);
+    return userSummaryService.toSummary(user);
   }
 
   // 소셜 계정 기준으로 사용자를 조회하고 없으면 새로 생성함

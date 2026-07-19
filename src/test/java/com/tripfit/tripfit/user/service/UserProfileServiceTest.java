@@ -10,7 +10,6 @@ import com.tripfit.tripfit.common.exception.TripFitException;
 import com.tripfit.tripfit.user.domain.SocialProvider;
 import com.tripfit.tripfit.user.domain.User;
 import com.tripfit.tripfit.user.dto.UpdateMyPageRequest;
-import com.tripfit.tripfit.user.dto.UpdateOnboardingRequest;
 import com.tripfit.tripfit.user.dto.UpdateProfileRequest;
 import com.tripfit.tripfit.user.dto.UserSummaryResponse;
 import com.tripfit.tripfit.user.exception.UserErrorCode;
@@ -29,6 +28,9 @@ class UserProfileServiceTest {
   @Mock
   private UserRepository userRepository;
 
+  @Mock
+  private UserSummaryService userSummaryService;
+
   @InjectMocks
   private UserProfileService userProfileService;
 
@@ -43,6 +45,19 @@ class UserProfileServiceTest {
   void updateProfile_savesFirstAndLastName() {
     when(userRepository.findById(UUID.fromString("550e8400-e29b-41d4-a716-446655440001")))
         .thenReturn(Optional.of(user));
+    when(userSummaryService.toSummary(user))
+        .thenReturn(
+            new UserSummaryResponse(
+                user.getId(),
+                user.getEmail(),
+                "길동",
+                "홍",
+                user.getNickname(),
+                user.getProfileImageUrl(),
+                user.getProvider(),
+                false,
+                false,
+                false));
     UserSummaryResponse response =
         userProfileService.updateProfile(
             UUID.fromString("550e8400-e29b-41d4-a716-446655440001"),
@@ -60,6 +75,19 @@ class UserProfileServiceTest {
     user.setLastName("홍");
     when(userRepository.findById(UUID.fromString("550e8400-e29b-41d4-a716-446655440001")))
         .thenReturn(Optional.of(user));
+    when(userSummaryService.toSummary(user))
+        .thenReturn(
+            new UserSummaryResponse(
+                user.getId(),
+                user.getEmail(),
+                "철수",
+                "김",
+                user.getNickname(),
+                user.getProfileImageUrl(),
+                user.getProvider(),
+                false,
+                false,
+                false));
     UserSummaryResponse response =
         userProfileService.updateMyPage(
             UUID.fromString("550e8400-e29b-41d4-a716-446655440001"),
@@ -69,35 +97,6 @@ class UserProfileServiceTest {
     assertThat(user.getLastName()).isEqualTo("김");
     assertThat(response.firstName()).isEqualTo("철수");
     assertThat(response.lastName()).isEqualTo("김");
-  }
-
-  @Test
-  void updateOnboarding_skipOnly_setsOptionalCompleted() {
-    when(userRepository.findById(UUID.fromString("550e8400-e29b-41d4-a716-446655440001")))
-        .thenReturn(Optional.of(user));
-    UserSummaryResponse response =
-        userProfileService.updateOnboarding(
-            UUID.fromString("550e8400-e29b-41d4-a716-446655440001"),
-            new UpdateOnboardingRequest(null, null, true));
-
-    assertThat(user.isOptionalOnboardingCompleted()).isTrue();
-    assertThat(user.isGoogleCalendarConnected()).isFalse();
-    assertThat(user.isScheduleRegistered()).isFalse();
-    assertThat(response.isOptionalOnboardingCompleted()).isTrue();
-  }
-
-  @Test
-  void updateOnboarding_partialUpdate_keepsOtherFields() {
-    when(userRepository.findById(UUID.fromString("550e8400-e29b-41d4-a716-446655440001")))
-        .thenReturn(Optional.of(user));
-    user.setGoogleCalendarConnected(true);
-
-    userProfileService.updateOnboarding(
-        UUID.fromString("550e8400-e29b-41d4-a716-446655440001"),
-        new UpdateOnboardingRequest(null, null, true));
-
-    assertThat(user.isGoogleCalendarConnected()).isTrue();
-    assertThat(user.isOptionalOnboardingCompleted()).isTrue();
   }
 
   @Test

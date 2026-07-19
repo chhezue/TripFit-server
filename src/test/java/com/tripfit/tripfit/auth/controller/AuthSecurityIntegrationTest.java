@@ -79,7 +79,7 @@ class AuthSecurityIntegrationTest {
         .andExpect(jsonPath("$.data.nickname").value("홍길동"))
         .andExpect(jsonPath("$.data.profileImageUrl").value("https://example.com/profile.png"))
         .andExpect(jsonPath("$.data.provider").value("GOOGLE"))
-        .andExpect(jsonPath("$.data.isOptionalOnboardingCompleted").value(false));
+        .andExpect(jsonPath("$.data.hasPreSchedule").value(false));
   }
 
   @Test

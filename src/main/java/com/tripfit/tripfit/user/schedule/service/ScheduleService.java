@@ -29,6 +29,7 @@ import com.tripfit.tripfit.user.schedule.exception.ScheduleErrorCode;
 import com.tripfit.tripfit.user.schedule.repository.PersonalScheduleRepository;
 import com.tripfit.tripfit.user.schedule.repository.RegularScheduleRepository;
 import com.tripfit.tripfit.user.repository.UserRepository;
+import com.tripfit.tripfit.user.service.UserSummaryService;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -41,6 +42,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// User 전역 regular·personal CRUD·effective calendar — #22 D-BR006-5: BR-USER-006 regular 선행 게이트 삭제
+// hasPreSchedule은 본 Service 응답에 없음 — row INSERT/DELETE 후 UserSummaryService EXISTS → GET /auth/me 등
+// 재조회
 @Service
 public class ScheduleService {
 
@@ -57,17 +61,21 @@ public class ScheduleService {
 
   private final TripMemberRepository tripMemberRepository;
 
+  private final UserSummaryService userSummaryService;
+
   public ScheduleService(
       RegularScheduleRepository regularScheduleRepository,
       PersonalScheduleRepository personalScheduleRepository,
       UserRepository userRepository,
       TripRepository tripRepository,
-      TripMemberRepository tripMemberRepository) {
+      TripMemberRepository tripMemberRepository,
+      UserSummaryService userSummaryService) {
     this.regularScheduleRepository = regularScheduleRepository;
     this.personalScheduleRepository = personalScheduleRepository;
     this.userRepository = userRepository;
     this.tripRepository = tripRepository;
     this.tripMemberRepository = tripMemberRepository;
+    this.userSummaryService = userSummaryService;
   }
 
   // 사용자의 정기 일정 목록을 생성 시각 오름차순으로 조회함
@@ -79,7 +87,7 @@ public class ScheduleService {
             .toList());
   }
 
-  // 정기 일정을 생성하고 슬롯을 시각 구간으로 계산한 뒤 등록 플래그를 true로 둠
+  // 정기 일정 생성 — start/end로 슬롯 계산 후 저장. 첫 regular row → hasPreSchedule true (다음 login/me/profile)
   @Transactional
   public RegularScheduleResponse createRegular(UUID userId, CreateRegularScheduleRequest request) {
     // 1. 제목·시각·연차 필드 입력을 검증함
@@ -99,9 +107,7 @@ public class ScheduleService {
             request.halfVacationAvailable(),
             request.holidayRest());
     regularScheduleRepository.save(schedule);
-
-    // 3. 정기 일정이 생겼으므로 온보딩 게이트 플래그를 켬 (BR-USER-006)
-    user.setScheduleRegistered(true);
+    userSummaryService.clearAllFreeOnScheduleAdded(user);
     return toRegularResponse(schedule);
   }
 
@@ -128,29 +134,23 @@ public class ScheduleService {
     return toRegularResponse(schedule);
   }
 
-  // 정기 일정을 삭제하고 남은 행 여부로 isScheduleRegistered를 재계산함
+  // 정기 일정 삭제 — regular 0건 + personal 0건이면 hasPreSchedule false (다음 login/me/profile)
   @Transactional
   public void deleteRegular(UUID userId, UUID regularId) {
-    // 1. 본인 소유 행만 삭제함
     RegularSchedule schedule =
         regularScheduleRepository
             .findByIdAndUserId(regularId, userId)
             .orElseThrow(() -> new TripFitException(ScheduleErrorCode.REGULAR_SCHEDULE_NOT_FOUND));
     regularScheduleRepository.delete(schedule);
-
-    // 2. 남은 정기 일정이 없으면 등록 플래그를 false로 되돌림 (BR-USER-006)
-    User user = findUser(userId);
-    user.setScheduleRegistered(regularScheduleRepository.existsByUserId(userId));
+    userSummaryService.markAllFreeIfSchedulesCleared(findUser(userId));
   }
 
-  // 기간 내 개인 일정을 날짜 오름차순으로 조회함 (정기 등록 게이트 — BR-USER-006)
+  // D-BR006-5: regular 없이 personal-only 허용 — 구 REGULAR_SCHEDULE_REQUIRED 403 없음
   @Transactional(readOnly = true)
   public PersonalScheduleResponse getPersonal(
       UUID userId,
       LocalDate startDate,
       LocalDate endDate) {
-    // 1. 정기 일정 미등록이면 개별 일정 진입을 차단함
-    requireRegularScheduleRegistered(userId);
     validateDateRange(startDate, endDate);
     List<PersonalScheduleItemResponse> items =
         personalScheduleRepository
@@ -161,19 +161,46 @@ public class ScheduleService {
     return new PersonalScheduleResponse(items);
   }
 
-  // 개인 일정을 날짜별로 생성 또는 갱신한 뒤 요청 기간 목록을 반환함 (정기 등록 게이트 — BR-USER-006)
+  // personal bulk upsert + deletedDates — D-BR006-5 · D-JOIN-CLEAR · D-PERSONAL-6
   @Transactional
   public PersonalScheduleResponse upsertPersonal(
       UUID userId,
       UpdatePersonalScheduleRequest request) {
-    // 1. 정기 일정 미등록이면 개별 일정 입력을 차단함
-    requireRegularScheduleRegistered(userId);
     User user = findUser(userId);
+    List<PersonalScheduleItem> items =
+        request.items() == null ? List.of() : request.items();
+    List<LocalDate> deletedDates =
+        request.deletedDates() == null ? List.of() : request.deletedDates();
+
+    if (items.isEmpty() && deletedDates.isEmpty()) {
+      throw new TripFitException(CommonErrorCode.INVALID_INPUT);
+    }
+
+    // items ∩ deletedDates → 400
+    for (PersonalScheduleItem item : items) {
+      if (deletedDates.contains(item.scheduleDate())) {
+        throw new TripFitException(CommonErrorCode.INVALID_INPUT);
+      }
+    }
+
     LocalDate minDate = null;
     LocalDate maxDate = null;
 
-    // 2. 항목마다 검증 후 (user, date) 기준으로 insert 또는 update함
-    for (PersonalScheduleItem item : request.items()) {
+    // 1. deletedDates 먼저 삭제 (CLEAR)
+    if (!deletedDates.isEmpty()) {
+      personalScheduleRepository.deleteByUserIdAndScheduleDateIn(userId, deletedDates);
+      for (LocalDate d : deletedDates) {
+        if (minDate == null || d.isBefore(minDate)) {
+          minDate = d;
+        }
+        if (maxDate == null || d.isAfter(maxDate)) {
+          maxDate = d;
+        }
+      }
+    }
+
+    // 2. items upsert
+    for (PersonalScheduleItem item : items) {
       validatePersonalItem(item);
       PersonalSchedule existing =
           personalScheduleRepository
@@ -203,18 +230,23 @@ public class ScheduleService {
       }
     }
 
-    // 3. 요청에 포함된 날짜 범위의 최신 목록을 반환함
+    // 3. is_all_free 전이 — 추가 시 false · 삭제 후 0행이면 true
+    if (!items.isEmpty()) {
+      userSummaryService.clearAllFreeOnScheduleAdded(user);
+    }
+    if (!deletedDates.isEmpty()) {
+      userSummaryService.markAllFreeIfSchedulesCleared(user);
+    }
     return getPersonal(userId, minDate, maxDate);
   }
 
-  // 기간 내 regular+personal을 합친 effective 달력을 조회함 (S1 · R2=A · sparse)
+  // effective 달력 — D-BR006-5 regular 미등록도 403 없음 · regular+personal 모두 없는 날은 응답 omit
+  // D-SPARSE-3: 방 입장 후 omit 해석=POSSIBLE은 trip UI/추천 쪽 — 본 API는 sparse day를 날짜 키 자체 생략
   @Transactional(readOnly = true)
   public ScheduleCalendarResponse getCalendar(
       UUID userId,
       LocalDate startDate,
       LocalDate endDate) {
-    // 1. 정기 등록·기간(최대 2년)을 검증함
-    requireRegularScheduleRegistered(userId);
     validateCalendarDateRange(startDate, endDate);
 
     // 2. regular·personal을 읽어 날짜별 effective로 합침
@@ -282,15 +314,6 @@ public class ScheduleService {
       result.add(new MemberPersonal(entry.getKey(), displayName(entry.getValue()), days));
     }
     return new MemberPersonalSummaryResponse(result);
-  }
-
-  // BR-USER-006: 플래그와 실제 row 불일치(삭제 등) 시 row 존재 여부로 재판단
-  @Transactional(readOnly = true)
-  public void requireRegularScheduleRegistered(UUID userId) {
-    User user = findUser(userId);
-    if (!user.isScheduleRegistered() && !regularScheduleRepository.existsByUserId(userId)) {
-      throw new TripFitException(ScheduleErrorCode.REGULAR_SCHEDULE_REQUIRED);
-    }
   }
 
   private void validateCreateRegular(CreateRegularScheduleRequest request) {

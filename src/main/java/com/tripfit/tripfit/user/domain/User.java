@@ -81,13 +81,11 @@ public class User extends SoftDeleteEntity {
   @Column(name = "is_google_calendar_connected", nullable = false)
   private boolean isGoogleCalendarConnected;
 
-  @Schema(description = "정기 일정(regular_schedule) ≥1행 등록 여부", example = "false")
-  @Column(name = "is_schedule_registered", nullable = false)
-  private boolean isScheduleRegistered;
-
-  @Schema(description = "건너뛰기 가능한 온보딩(캘린더/일정 입력) 전체 완료 여부", example = "false")
-  @Column(name = "is_optional_onboarding_completed", nullable = false)
-  private boolean isOptionalOnboardingCompleted;
+  @Schema(
+      description = "전부 free 선언. default false=미입력. 일정 0행 CLEAR 또는 create/join Skip 시 true. row≥1이면 false",
+      example = "false")
+  @Column(name = "is_all_free", nullable = false)
+  private boolean isAllFree;
 
   public User(
       String socialId,
@@ -101,8 +99,7 @@ public class User extends SoftDeleteEntity {
     this.nickname = nickname;
     this.profileImageUrl = profileImageUrl;
     this.isGoogleCalendarConnected = false;
-    this.isScheduleRegistered = false;
-    this.isOptionalOnboardingCompleted = false;
+    this.isAllFree = false;
   }
 
   // 성·이름이 모두 입력됐는지 확인함 (온보딩 필수 프로필 완료)
