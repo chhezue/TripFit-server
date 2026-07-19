@@ -4,14 +4,6 @@ import com.tripfit.tripfit.auth.exception.AuthErrorCode;
 import com.tripfit.tripfit.common.exception.CommonErrorCode;
 import com.tripfit.tripfit.common.exception.TripFitException;
 import com.tripfit.tripfit.trip.domain.ScheduleStatus;
-import com.tripfit.tripfit.trip.domain.Trip;
-import com.tripfit.tripfit.trip.domain.TripMember;
-import com.tripfit.tripfit.trip.dto.MemberPersonalSummaryResponse;
-import com.tripfit.tripfit.trip.dto.MemberPersonalSummaryResponse.DayPersonal;
-import com.tripfit.tripfit.trip.dto.MemberPersonalSummaryResponse.MemberPersonal;
-import com.tripfit.tripfit.trip.exception.TripErrorCode;
-import com.tripfit.tripfit.trip.repository.TripMemberRepository;
-import com.tripfit.tripfit.trip.repository.TripRepository;
 import com.tripfit.tripfit.user.schedule.domain.PersonalSchedule;
 import com.tripfit.tripfit.user.schedule.domain.RegularSchedule;
 import com.tripfit.tripfit.user.schedule.domain.Weekday;
@@ -33,12 +25,8 @@ import com.tripfit.tripfit.user.service.UserSummaryService;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,24 +45,16 @@ public class ScheduleService {
 
   private final UserRepository userRepository;
 
-  private final TripRepository tripRepository;
-
-  private final TripMemberRepository tripMemberRepository;
-
   private final UserSummaryService userSummaryService;
 
   public ScheduleService(
       RegularScheduleRepository regularScheduleRepository,
       PersonalScheduleRepository personalScheduleRepository,
       UserRepository userRepository,
-      TripRepository tripRepository,
-      TripMemberRepository tripMemberRepository,
       UserSummaryService userSummaryService) {
     this.regularScheduleRepository = regularScheduleRepository;
     this.personalScheduleRepository = personalScheduleRepository;
     this.userRepository = userRepository;
-    this.tripRepository = tripRepository;
-    this.tripMemberRepository = tripMemberRepository;
     this.userSummaryService = userSummaryService;
   }
 
@@ -261,59 +241,6 @@ public class ScheduleService {
         startDate,
         endDate,
         ScheduleCalendarResolver.resolve(regulars, personals, startDate, endDate));
-  }
-
-  // 여행방 멤버들의 희망 기간 개인 일정을 집계함
-  @Transactional(readOnly = true)
-  public MemberPersonalSummaryResponse getMemberPersonalSummary(
-      UUID tripId,
-      UUID requesterUserId) {
-    // 1. 여행방 존재·요청자 멤버십을 확인함
-    Trip trip =
-        tripRepository
-            .findByIdAndDeletedAtIsNull(tripId)
-            .orElseThrow(() -> new TripFitException(TripErrorCode.TRIP_NOT_FOUND));
-    if (!tripMemberRepository.existsByTripIdAndUserIdAndDeletedAtIsNull(tripId, requesterUserId)) {
-      throw new TripFitException(TripErrorCode.TRIP_ACCESS_DENIED);
-    }
-
-    // 2. 멤버 userId와 기간 내 personal_schedule을 조회함
-    List<TripMember> members = tripMemberRepository.findByTripIdAndDeletedAtIsNull(tripId);
-    List<UUID> userIds = members.stream().map(m -> m.getUser().getId()).distinct().toList();
-    if (userIds.isEmpty()) {
-      return new MemberPersonalSummaryResponse(List.of());
-    }
-
-    List<PersonalSchedule> schedules =
-        personalScheduleRepository.findByUserIdInAndScheduleDateBetween(
-            userIds,
-            trip.getStartRange(),
-            trip.getEndRange());
-    Map<UUID, List<PersonalSchedule>> byUserId =
-        schedules.stream().collect(Collectors.groupingBy(s -> s.getUser().getId()));
-
-    // 3. 멤버별로 표시명과 날짜 슬롯을 묶어 응답을 만듦
-    Map<UUID, User> usersById = new LinkedHashMap<>();
-    for (TripMember member : members) {
-      usersById.putIfAbsent(member.getUser().getId(), member.getUser());
-    }
-
-    List<MemberPersonal> result = new ArrayList<>();
-    for (Map.Entry<UUID, User> entry : usersById.entrySet()) {
-      List<DayPersonal> days =
-          byUserId.getOrDefault(entry.getKey(), List.of()).stream()
-              .sorted((a, b) -> a.getScheduleDate().compareTo(b.getScheduleDate()))
-              .map(
-                  s -> new DayPersonal(
-                      s.getScheduleDate(),
-                      s.getSlotStatuses().getMorningStatus(),
-                      s.getSlotStatuses().getAfternoonStatus(),
-                      s.getSlotStatuses().getEveningStatus(),
-                      s.isUncertain()))
-              .toList();
-      result.add(new MemberPersonal(entry.getKey(), displayName(entry.getValue()), days));
-    }
-    return new MemberPersonalSummaryResponse(result);
   }
 
   private void validateCreateRegular(CreateRegularScheduleRequest request) {

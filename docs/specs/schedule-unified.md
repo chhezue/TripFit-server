@@ -2,7 +2,7 @@
 
 > wave: 2  
 > implements: BR-TRIP-002, BR-TRIP-003, BR-TRIP-004, BR-TRIP-006, BR-USER-008  
-> deferred: Google Calendar OAuth (wave 4), 연차 복수 행 집계 (#13), members schedule-calendar OpenAPI 공개 → [#22](https://github.com/Central-MakeUs/TripFit-server/issues/22) Hidden 2단계  
+> deferred: Google Calendar OAuth (wave 4), 연차 복수 행 집계 (#13)  
 > 상태: Approved  
 > supersedes: A안 `schedule`; `Availability` → `PersonalSchedule`
 
@@ -81,14 +81,15 @@ user/schedule/
 | PATCH/DELETE | `/api/v1/users/schedule/regular/{id}` | 전체 수정 / 삭제 |
 | GET/PATCH | `/api/v1/users/schedule/personal` | 조회 / **upsert + `deletedDates`** (#22 Hidden **1단계 해제**) |
 | GET | `/api/v1/users/schedule/calendar` | effective 달력 · 최대 730일 (#17) · Hidden **1단계 해제** |
-| GET | `/api/v1/trips/{tripId}/members/personal-summary` | **deprecate** → `members/schedule-calendar` |
+| GET | `/api/v1/trips/{tripId}/members/schedule-calendar` | 멤버 전원 effective · **#39 OpenAPI 공개** · ~~personal-summary~~ **삭제** |
 
-> 폐기: `/schedule/availability`, per-slot TBD, `note` · ~~BR-USER-006 regular 선행 403~~ (#22 D-BR006-5)
+> 폐기: `/schedule/availability`, per-slot TBD, `note` · ~~BR-USER-006 regular 선행 403~~ (#22 D-BR006-5) · ~~`members/personal-summary`~~ (#39)
 
 ## 잔여
 
 - `uncertain=true`일 때 추천에서 슬롯 무시 여부 (#13) — calendar는 U1(슬롯 그대로 노출) 가정
-- 그룹 `members/schedule-calendar` OpenAPI 공개 — #22 Hidden **2단계**
+- ~~그룹 `members/schedule-calendar` OpenAPI Hidden~~ — **#39 공개 완료**
+- ~~`members/personal-summary`~~ — **#39 삭제 완료**
 
 ## 변경 이력
 

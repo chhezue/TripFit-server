@@ -9,11 +9,6 @@ import static org.mockito.Mockito.when;
 import com.tripfit.tripfit.common.exception.CommonErrorCode;
 import com.tripfit.tripfit.common.exception.TripFitException;
 import com.tripfit.tripfit.trip.domain.ScheduleStatus;
-import com.tripfit.tripfit.trip.domain.Trip;
-import com.tripfit.tripfit.trip.domain.TripStatus;
-import com.tripfit.tripfit.trip.exception.TripErrorCode;
-import com.tripfit.tripfit.trip.repository.TripMemberRepository;
-import com.tripfit.tripfit.trip.repository.TripRepository;
 import com.tripfit.tripfit.user.schedule.domain.PersonalSchedule;
 import com.tripfit.tripfit.user.schedule.domain.RegularSchedule;
 import com.tripfit.tripfit.user.schedule.domain.VacationApplyPeriod;
@@ -46,10 +41,6 @@ class ScheduleServiceTest {
 
   private static final UUID USER_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440001");
 
-  private static final UUID OTHER_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440002");
-
-  private static final UUID TRIP_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440010");
-
   private static final UUID REGULAR_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440099");
 
   @Mock
@@ -60,12 +51,6 @@ class ScheduleServiceTest {
 
   @Mock
   private UserRepository userRepository;
-
-  @Mock
-  private TripRepository tripRepository;
-
-  @Mock
-  private TripMemberRepository tripMemberRepository;
 
   @Mock
   private UserSummaryService userSummaryService;
@@ -430,28 +415,5 @@ class ScheduleServiceTest {
 
     assertThat(response.days()).hasSize(5);
     assertThat(response.days().getFirst().date()).isEqualTo(LocalDate.of(2026, 8, 3));
-  }
-
-  @Test
-  void getMemberPersonalSummary_nonMember_throws() {
-    Trip trip =
-        new Trip(
-            user,
-            "제주",
-            LocalDate.of(2026, 8, 1),
-            LocalDate.of(2026, 8, 10),
-            4,
-            6,
-            "ABC123",
-            TripStatus.ONGOING);
-    trip.setId(TRIP_ID);
-    when(tripRepository.findByIdAndDeletedAtIsNull(TRIP_ID)).thenReturn(Optional.of(trip));
-    when(tripMemberRepository.existsByTripIdAndUserIdAndDeletedAtIsNull(TRIP_ID, OTHER_ID))
-        .thenReturn(false);
-
-    assertThatThrownBy(() -> scheduleService.getMemberPersonalSummary(TRIP_ID, OTHER_ID))
-        .isInstanceOf(TripFitException.class)
-        .extracting(ex -> ((TripFitException) ex).getErrorCode())
-        .isEqualTo(TripErrorCode.TRIP_ACCESS_DENIED);
   }
 }

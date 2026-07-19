@@ -8,21 +8,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.tripfit.tripfit.auth.jwt.AuthorizedUserArgumentResolver;
 import com.tripfit.tripfit.auth.jwt.JwtAuthentication;
 import com.tripfit.tripfit.common.exception.GlobalExceptionHandler;
-import com.tripfit.tripfit.common.exception.TripFitException;
 import com.tripfit.tripfit.trip.domain.ScheduleStatus;
 import com.tripfit.tripfit.trip.domain.TripMemberRole;
 import com.tripfit.tripfit.trip.domain.TripMemberStatus;
-import com.tripfit.tripfit.trip.dto.MemberPersonalSummaryResponse;
-import com.tripfit.tripfit.trip.dto.MemberPersonalSummaryResponse.DayPersonal;
-import com.tripfit.tripfit.trip.dto.MemberPersonalSummaryResponse.MemberPersonal;
 import com.tripfit.tripfit.trip.dto.MemberScheduleCalendarResponse;
 import com.tripfit.tripfit.trip.dto.MemberScheduleCalendarResponse.CalendarDay;
 import com.tripfit.tripfit.trip.dto.MemberScheduleCalendarResponse.MemberCalendar;
 import com.tripfit.tripfit.trip.dto.TripMembersResponse;
 import com.tripfit.tripfit.trip.dto.TripMembersResponse.TripMemberItemResponse;
-import com.tripfit.tripfit.trip.exception.TripErrorCode;
 import com.tripfit.tripfit.trip.service.TripService;
-import com.tripfit.tripfit.user.schedule.service.ScheduleService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -49,16 +43,13 @@ class TripMemberControllerTest {
   @Mock
   private TripService tripService;
 
-  @Mock
-  private ScheduleService scheduleService;
-
   private MockMvc mockMvc;
 
   @BeforeEach
   void setUp() {
     SecurityContextHolder.getContext().setAuthentication(new JwtAuthentication(USER_ID));
     mockMvc =
-        MockMvcBuilders.standaloneSetup(new TripMemberController(tripService, scheduleService))
+        MockMvcBuilders.standaloneSetup(new TripMemberController(tripService))
             .setCustomArgumentResolvers(new AuthorizedUserArgumentResolver())
             .setControllerAdvice(new GlobalExceptionHandler())
             .setMessageConverters(new JacksonJsonHttpMessageConverter())
@@ -115,39 +106,5 @@ class TripMemberControllerTest {
         .perform(get("/api/v1/trips/" + TRIP_ID + "/members/schedule-calendar"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.members[0].days[0].uncertain").value(true));
-  }
-
-  @Test
-  void getPersonalSummary_ok() throws Exception {
-    when(scheduleService.getMemberPersonalSummary(TRIP_ID, USER_ID))
-        .thenReturn(
-            new MemberPersonalSummaryResponse(
-                List.of(
-                    new MemberPersonal(
-                        OTHER_ID,
-                        "김철수",
-                        List.of(
-                            new DayPersonal(
-                                LocalDate.of(2026, 8, 3),
-                                ScheduleStatus.IMPOSSIBLE,
-                                ScheduleStatus.POSSIBLE,
-                                ScheduleStatus.POSSIBLE,
-                                true))))));
-
-    mockMvc
-        .perform(get("/api/v1/trips/" + TRIP_ID + "/members/personal-summary"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.members[0].days[0].uncertain").value(true));
-  }
-
-  @Test
-  void getPersonalSummary_forbidden() throws Exception {
-    when(scheduleService.getMemberPersonalSummary(TRIP_ID, USER_ID))
-        .thenThrow(new TripFitException(TripErrorCode.TRIP_ACCESS_DENIED));
-
-    mockMvc
-        .perform(get("/api/v1/trips/" + TRIP_ID + "/members/personal-summary"))
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.code").value("TRIP_ACCESS_DENIED"));
   }
 }
