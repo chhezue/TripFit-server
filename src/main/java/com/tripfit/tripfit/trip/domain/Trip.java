@@ -101,7 +101,7 @@ public class Trip extends SoftDeleteEntity {
   @Column(name = "last_recommendation_mode")
   private RecommendationMode lastRecommendationMode;
 
-  @Schema(description = "홈 정렬용 최근 활동 시각 (D5)", example = "2026-07-20T12:00:00")
+  @Schema(description = "홈 정렬용 최근 활동 시각 (D5)", example = "2026-07-19T12:00:00")
   @Column(name = "last_activity_at", nullable = false)
   private LocalDateTime lastActivityAt;
 
@@ -125,7 +125,7 @@ public class Trip extends SoftDeleteEntity {
     this.lastActivityAt = LocalDateTime.now();
   }
 
-  // 홈 정렬용 최근 활동 시각 갱신 (join·patch·submit·추천·확정)
+  // {@link TripActivityAspect} — join · patch · submit · 추천 · 확정 (#26)
   public void touchLastActivity() {
     this.lastActivityAt = LocalDateTime.now();
   }

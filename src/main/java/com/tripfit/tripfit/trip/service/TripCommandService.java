@@ -1,6 +1,7 @@
 package com.tripfit.tripfit.trip.service;
 
 import com.tripfit.tripfit.common.exception.TripFitException;
+import com.tripfit.tripfit.trip.config.TripActivity;
 import com.tripfit.tripfit.trip.domain.Trip;
 import com.tripfit.tripfit.trip.domain.TripMember;
 import com.tripfit.tripfit.trip.domain.TripMemberRole;
@@ -42,6 +43,8 @@ class TripCommandService {
 
   private final TripQueryService tripQueryService;
 
+  private final TripJoinService tripJoinService;
+
   TripCommandService(
       TripRepository tripRepository,
       TripMemberRepository tripMemberRepository,
@@ -49,7 +52,8 @@ class TripCommandService {
       ScheduleService scheduleService,
       RecommendationRepository recommendationRepository,
       TripServiceSupport support,
-      TripQueryService tripQueryService) {
+      TripQueryService tripQueryService,
+      TripJoinService tripJoinService) {
     this.tripRepository = tripRepository;
     this.tripMemberRepository = tripMemberRepository;
     this.userProfileService = userProfileService;
@@ -57,6 +61,7 @@ class TripCommandService {
     this.recommendationRepository = recommendationRepository;
     this.support = support;
     this.tripQueryService = tripQueryService;
+    this.tripJoinService = tripJoinService;
   }
 
   @Transactional
@@ -98,6 +103,7 @@ class TripCommandService {
   }
 
   @Transactional
+  @TripActivity(tripIdParam = "tripId")
   public TripDetailResponse patchTrip(UUID tripId, UUID userId, PatchTripRequest request) {
     Trip trip = support.requireActiveTrip(tripId);
     support.requireOwner(trip, userId);
@@ -121,8 +127,6 @@ class TripCommandService {
     trip.setDurationDays(request.durationDays());
     trip.setTargetMemberCount(request.targetMemberCount());
     trip.setDestination(TripServiceSupport.normalizeDestination(request.destination()));
-    // #26: 갱신 이벤트 SSOT·AOP 확정 전 최소 hook
-    trip.touchLastActivity();
 
     if (recommendationInputsChanged) {
       // BR-TRIP-010: recommendation hard DELETE — #13 TripRecommendationService와 통합 예정
@@ -178,16 +182,7 @@ class TripCommandService {
       }
     }
 
-    TripMember member =
-        new TripMember(
-            trip,
-            user,
-            TripMemberRole.MEMBER,
-            TripMemberStatus.JOINED,
-            LocalDateTime.now());
-    tripMemberRepository.save(member);
-    trip.touchLastActivity();
-    return tripQueryService.toDetail(trip, member);
+    return tripJoinService.joinAsNewMember(trip, user);
   }
 
   @Transactional
@@ -199,6 +194,7 @@ class TripCommandService {
   }
 
   @Transactional
+  @TripActivity(tripIdParam = "tripId")
   public TripDetailResponse submitSchedule(UUID tripId, UUID userId) {
     Trip trip = support.requireActiveTrip(tripId);
     support.requireOngoingForMutation(trip);
@@ -206,7 +202,6 @@ class TripCommandService {
 
     scheduleService.requireRegularScheduleRegistered(userId);
     membership.setStatus(TripMemberStatus.RESPONDED);
-    trip.touchLastActivity();
     return tripQueryService.toDetail(trip, membership);
   }
 }

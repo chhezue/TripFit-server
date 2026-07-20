@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.tripfit.tripfit.common.exception.CommonErrorCode;
 import com.tripfit.tripfit.common.exception.TripFitException;
+import com.tripfit.tripfit.trip.config.TripActivityAspect;
 import com.tripfit.tripfit.trip.domain.Trip;
 import com.tripfit.tripfit.trip.domain.TripMember;
 import com.tripfit.tripfit.trip.domain.TripMemberRole;
@@ -45,6 +46,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 
 @ExtendWith(MockitoExtension.class)
 class TripServiceTest {
@@ -102,7 +104,12 @@ class TripServiceTest {
             regularScheduleRepository,
             personalScheduleRepository,
             support);
-    TripCommandService tripCommandService =
+    TripJoinService tripJoinService = new TripJoinService(tripMemberRepository, tripQueryService);
+    TripActivityAspect tripActivityAspect = new TripActivityAspect(tripRepository);
+    AspectJProxyFactory joinProxyFactory = new AspectJProxyFactory(tripJoinService);
+    joinProxyFactory.addAspect(tripActivityAspect);
+    TripJoinService proxiedJoinService = joinProxyFactory.getProxy();
+    TripCommandService tripCommandServiceRaw =
         new TripCommandService(
             tripRepository,
             tripMemberRepository,
@@ -110,7 +117,11 @@ class TripServiceTest {
             scheduleService,
             recommendationRepository,
             support,
-            tripQueryService);
+            tripQueryService,
+            proxiedJoinService);
+    AspectJProxyFactory commandProxyFactory = new AspectJProxyFactory(tripCommandServiceRaw);
+    commandProxyFactory.addAspect(tripActivityAspect);
+    TripCommandService tripCommandService = commandProxyFactory.getProxy();
     tripService =
         new TripService(tripCommandService, tripQueryService, tripMemberQueryService);
   }
@@ -187,6 +198,28 @@ class TripServiceTest {
         .isInstanceOf(TripFitException.class)
         .extracting(ex -> ((TripFitException) ex).getErrorCode())
         .isEqualTo(UserErrorCode.PROFILE_NAME_REQUIRED);
+  }
+
+  @Test
+  void joinTrip_newMember_touchesLastActivity() {
+    trip.setLastActivityAt(LocalDateTime.of(2026, 1, 1, 0, 0));
+    when(userRepository.findById(MEMBER_ID)).thenReturn(Optional.of(member));
+    when(tripRepository.findByInviteCodeAndDeletedAtIsNull("ABC234"))
+        .thenReturn(Optional.of(trip));
+    when(tripRepository.findByIdAndDeletedAtIsNull(TRIP_ID)).thenReturn(Optional.of(trip));
+    when(tripMemberRepository.findByTripIdAndUserIdAndDeletedAtIsNull(TRIP_ID, MEMBER_ID))
+        .thenReturn(Optional.empty());
+    when(tripMemberRepository.countByTripIdAndDeletedAtIsNull(TRIP_ID)).thenReturn(1L);
+    when(
+        tripMemberRepository.countByTripIdAndStatusAndDeletedAtIsNull(
+            TRIP_ID,
+            TripMemberStatus.RESPONDED))
+        .thenReturn(0L);
+
+    tripService.joinTrip(MEMBER_ID, new JoinTripRequest("ABC234"));
+
+    assertThat(trip.getLastActivityAt()).isAfter(LocalDateTime.of(2026, 1, 1, 0, 0));
+    verify(tripMemberRepository).save(any());
   }
 
   @Test
@@ -272,6 +305,7 @@ class TripServiceTest {
 
   @Test
   void patchTrip_deletesRecommendationsWhenRangeChanges() {
+    trip.setLastActivityAt(LocalDateTime.of(2026, 1, 1, 0, 0));
     when(tripRepository.findByIdAndDeletedAtIsNull(TRIP_ID)).thenReturn(Optional.of(trip));
     TripMember ownerMember = tripMember(owner, TripMemberRole.OWNER);
     when(tripMemberRepository.findByTripIdAndUserIdAndDeletedAtIsNull(TRIP_ID, OWNER_ID))
@@ -295,11 +329,12 @@ class TripServiceTest {
             "제주"));
 
     verify(recommendationRepository).deleteByTripId(TRIP_ID);
-    assertThat(trip.getLastActivityAt()).isNotNull();
+    assertThat(trip.getLastActivityAt()).isAfter(LocalDateTime.of(2026, 1, 1, 0, 0));
   }
 
   @Test
   void submitSchedule_setsRespondedWhenRegularExists() {
+    trip.setLastActivityAt(LocalDateTime.of(2026, 1, 1, 0, 0));
     when(tripRepository.findByIdAndDeletedAtIsNull(TRIP_ID)).thenReturn(Optional.of(trip));
     TripMember membership = tripMember(owner, TripMemberRole.OWNER);
     when(tripMemberRepository.findByTripIdAndUserIdAndDeletedAtIsNull(TRIP_ID, OWNER_ID))
@@ -315,6 +350,7 @@ class TripServiceTest {
 
     assertThat(membership.getStatus()).isEqualTo(TripMemberStatus.RESPONDED);
     assertThat(summary.myMemberStatus()).isEqualTo(TripMemberStatus.RESPONDED);
+    assertThat(trip.getLastActivityAt()).isAfter(LocalDateTime.of(2026, 1, 1, 0, 0));
     verify(scheduleService).requireRegularScheduleRegistered(OWNER_ID);
   }
 
