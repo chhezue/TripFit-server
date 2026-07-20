@@ -34,7 +34,7 @@ public class AuthController {
 
   @Operation(
       summary = "소셜 로그인",
-      description = "Google/Kakao/Apple 토큰 검증 후 TripFit access·refresh 발급",
+      description = "Google/Kakao/Apple 토큰 검증 후 access·refresh 발급. user.hasPreSchedule·isAllFree 포함",
       security = {})
   @PostMapping("/login")
   ResponseEntity<ApiResponse<LoginResponse>> login(
@@ -65,7 +65,9 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
-  @Operation(summary = "현재 사용자 조회", description = "JWT 기준 UserSummary 반환")
+  @Operation(
+      summary = "현재 사용자 조회",
+      description = "JWT 기준 UserSummary. hasPreSchedule(파생) · isAllFree(컬럼) — D-JOIN-ENTRY")
   @GetMapping("/me")
   ResponseEntity<ApiResponse<UserSummaryResponse>> me(@AuthorizedUser UUID userId) {
     UserSummaryResponse response = authService.getCurrentUser(userId);

@@ -3,11 +3,9 @@ package com.tripfit.tripfit.user.controller;
 import com.tripfit.tripfit.auth.jwt.AuthorizedUser;
 import com.tripfit.tripfit.common.api.ApiResponse;
 import com.tripfit.tripfit.user.dto.UpdateMyPageRequest;
-import com.tripfit.tripfit.user.dto.UpdateOnboardingRequest;
 import com.tripfit.tripfit.user.dto.UpdateProfileRequest;
 import com.tripfit.tripfit.user.dto.UserSummaryResponse;
 import com.tripfit.tripfit.user.service.UserProfileService;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.UUID;
@@ -29,7 +27,9 @@ public class UserController {
     this.userProfileService = userProfileService;
   }
 
-  @Operation(summary = "프로필(성·이름) 저장", description = "성·이름 필수. 미완료 시 trip 생성 등에서 403")
+  @Operation(
+      summary = "프로필(성·이름) 저장",
+      description = "성·이름 필수. 응답 user.hasPreSchedule은 일정 row EXISTS 파생(저장 필드 아님). 미완료 시 trip 생성·join 403")
   @PatchMapping("/profile")
   ResponseEntity<ApiResponse<UserSummaryResponse>> updateProfile(
       @AuthorizedUser UUID userId,
@@ -38,22 +38,14 @@ public class UserController {
     return ResponseEntity.ok(ApiResponse.of(response));
   }
 
-  @Operation(summary = "마이페이지 이름 수정", description = "성·이름만 수정. 빈 값 거부")
+  @Operation(
+      summary = "마이페이지 이름 수정",
+      description = "성·이름만 수정. 응답 user.hasPreSchedule은 login/me와 동일하게 조회 시 파생")
   @PatchMapping("/my-page")
   ResponseEntity<ApiResponse<UserSummaryResponse>> updateMyPage(
       @AuthorizedUser UUID userId,
       @Valid @RequestBody UpdateMyPageRequest request) {
     UserSummaryResponse response = userProfileService.updateMyPage(userId, request);
-    return ResponseEntity.ok(ApiResponse.of(response));
-  }
-
-  @Hidden // #22 schedule-participation-onboarding [미定]
-  @Operation(summary = "온보딩 상태 갱신", description = "전송한 boolean 필드만 partial update")
-  @PatchMapping("/onboarding")
-  ResponseEntity<ApiResponse<UserSummaryResponse>> updateOnboarding(
-      @AuthorizedUser UUID userId,
-      @Valid @RequestBody UpdateOnboardingRequest request) {
-    UserSummaryResponse response = userProfileService.updateOnboarding(userId, request);
     return ResponseEntity.ok(ApiResponse.of(response));
   }
 }

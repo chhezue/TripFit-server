@@ -24,10 +24,10 @@ import com.tripfit.tripfit.user.schedule.dto.CreateRegularScheduleRequest;
 import com.tripfit.tripfit.user.schedule.dto.UpdatePersonalScheduleRequest;
 import com.tripfit.tripfit.user.schedule.dto.UpdatePersonalScheduleRequest.PersonalScheduleItem;
 import com.tripfit.tripfit.user.schedule.dto.UpdateRegularScheduleRequest;
-import com.tripfit.tripfit.user.schedule.exception.ScheduleErrorCode;
 import com.tripfit.tripfit.user.schedule.repository.PersonalScheduleRepository;
 import com.tripfit.tripfit.user.schedule.repository.RegularScheduleRepository;
 import com.tripfit.tripfit.user.repository.UserRepository;
+import com.tripfit.tripfit.user.service.UserSummaryService;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -66,6 +66,9 @@ class ScheduleServiceTest {
 
   @Mock
   private TripMemberRepository tripMemberRepository;
+
+  @Mock
+  private UserSummaryService userSummaryService;
 
   @InjectMocks
   private ScheduleService scheduleService;
@@ -232,7 +235,6 @@ class ScheduleServiceTest {
   @Test
   void upsertPersonal_dateLevelUncertain() {
     when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-    when(regularScheduleRepository.existsByUserId(USER_ID)).thenReturn(true);
     when(
         personalScheduleRepository.findByUserIdAndScheduleDate(
             USER_ID,
@@ -274,7 +276,8 @@ class ScheduleServiceTest {
                         ScheduleStatus.IMPOSSIBLE,
                         ScheduleStatus.POSSIBLE,
                         ScheduleStatus.POSSIBLE,
-                        true))));
+                        true)),
+                null));
 
     assertThat(response.items()).hasSize(1);
     assertThat(response.items().getFirst().uncertain()).isTrue();
@@ -285,12 +288,41 @@ class ScheduleServiceTest {
   }
 
   @Test
-  void upsertPersonal_withoutRegular_throws403() {
+  void upsertPersonal_withoutRegular_succeeds() {
     when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-    when(regularScheduleRepository.existsByUserId(USER_ID)).thenReturn(false);
+    when(
+        personalScheduleRepository.findByUserIdAndScheduleDate(
+            USER_ID,
+            LocalDate.of(2026, 8, 3)))
+        .thenReturn(Optional.empty());
+    when(personalScheduleRepository.save(any(PersonalSchedule.class)))
+        .thenAnswer(
+            invocation -> {
+              PersonalSchedule s = invocation.getArgument(0);
+              s.setId(UUID.fromString("550e8400-e29b-41d4-a716-446655440088"));
+              return s;
+            });
+    when(
+        personalScheduleRepository.findByUserIdAndScheduleDateBetweenOrderByScheduleDateAsc(
+            USER_ID,
+            LocalDate.of(2026, 8, 3),
+            LocalDate.of(2026, 8, 3)))
+        .thenAnswer(
+            inv -> {
+              PersonalSchedule saved =
+                  PersonalSchedule.create(
+                      user,
+                      LocalDate.of(2026, 8, 3),
+                      ScheduleStatus.POSSIBLE,
+                      ScheduleStatus.POSSIBLE,
+                      ScheduleStatus.POSSIBLE,
+                      false);
+              saved.setId(UUID.fromString("550e8400-e29b-41d4-a716-446655440088"));
+              return List.of(saved);
+            });
 
-    assertThatThrownBy(
-        () -> scheduleService.upsertPersonal(
+    var response =
+        scheduleService.upsertPersonal(
             USER_ID,
             new UpdatePersonalScheduleRequest(
                 List.of(
@@ -299,43 +331,65 @@ class ScheduleServiceTest {
                         ScheduleStatus.POSSIBLE,
                         ScheduleStatus.POSSIBLE,
                         ScheduleStatus.POSSIBLE,
-                        false)))))
-        .isInstanceOf(TripFitException.class)
-        .extracting(ex -> ((TripFitException) ex).getErrorCode())
-        .isEqualTo(ScheduleErrorCode.REGULAR_SCHEDULE_REQUIRED);
+                        false)),
+                null));
+
+    assertThat(response.items()).hasSize(1);
   }
 
   @Test
-  void getPersonal_withoutRegular_throws403() {
+  void upsertPersonal_deletedDates_clearsAllFreeWhenNoSchedulesLeft() {
+    user.setAllFree(false);
     when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-    when(regularScheduleRepository.existsByUserId(USER_ID)).thenReturn(false);
+    when(
+        personalScheduleRepository.findByUserIdAndScheduleDateBetweenOrderByScheduleDateAsc(
+            USER_ID,
+            LocalDate.of(2026, 8, 3),
+            LocalDate.of(2026, 8, 3)))
+        .thenReturn(List.of());
+
+    scheduleService.upsertPersonal(
+        USER_ID,
+        new UpdatePersonalScheduleRequest(List.of(), List.of(LocalDate.of(2026, 8, 3))));
+
+    verify(personalScheduleRepository)
+        .deleteByUserIdAndScheduleDateIn(USER_ID, List.of(LocalDate.of(2026, 8, 3)));
+    verify(userSummaryService).markAllFreeIfSchedulesCleared(user);
+  }
+
+  @Test
+  void upsertPersonal_rejectsEmptyItemsAndDeletedDates() {
+    when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
 
     assertThatThrownBy(
-        () -> scheduleService.getPersonal(
+        () -> scheduleService.upsertPersonal(
+            USER_ID,
+            new UpdatePersonalScheduleRequest(List.of(), List.of())))
+        .isInstanceOf(TripFitException.class)
+        .extracting(ex -> ((TripFitException) ex).getErrorCode())
+        .isEqualTo(CommonErrorCode.INVALID_INPUT);
+  }
+
+  @Test
+  void getPersonal_withoutRegular_succeeds() {
+    when(
+        personalScheduleRepository.findByUserIdAndScheduleDateBetweenOrderByScheduleDateAsc(
             USER_ID,
             LocalDate.of(2026, 8, 1),
             LocalDate.of(2026, 8, 7)))
-        .isInstanceOf(TripFitException.class)
-        .extracting(ex -> ((TripFitException) ex).getErrorCode())
-        .isEqualTo(ScheduleErrorCode.REGULAR_SCHEDULE_REQUIRED);
-  }
+        .thenReturn(List.of());
 
-  @Test
-  void requireRegularScheduleRegistered_whenMissing_throws403() {
-    when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-    when(regularScheduleRepository.existsByUserId(USER_ID)).thenReturn(false);
+    var response =
+        scheduleService.getPersonal(
+            USER_ID,
+            LocalDate.of(2026, 8, 1),
+            LocalDate.of(2026, 8, 7));
 
-    assertThatThrownBy(() -> scheduleService.requireRegularScheduleRegistered(USER_ID))
-        .isInstanceOf(TripFitException.class)
-        .extracting(ex -> ((TripFitException) ex).getErrorCode())
-        .isEqualTo(ScheduleErrorCode.REGULAR_SCHEDULE_REQUIRED);
+    assertThat(response.items()).isEmpty();
   }
 
   @Test
   void getCalendar_whenRangeExceedsTwoYears_throws400() {
-    when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-    when(regularScheduleRepository.existsByUserId(USER_ID)).thenReturn(true);
-
     assertThatThrownBy(
         () -> scheduleService.getCalendar(
             USER_ID,
@@ -348,8 +402,6 @@ class ScheduleServiceTest {
 
   @Test
   void getCalendar_resolvesSparseWeekdays() {
-    when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-    when(regularScheduleRepository.existsByUserId(USER_ID)).thenReturn(true);
     RegularSchedule work =
         RegularSchedule.create(
             user,

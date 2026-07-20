@@ -134,6 +134,20 @@ springdoc OpenAPI 3 — `io.swagger.v3.oas.annotations.media.Schema`
 - Javadoc 대신 `@Schema` 우선 (필드 의미). 메서드·API 흐름 주석은 아래 **Comments** 절
 - SSOT: `docs/architecture/erd.md`, 해당 `docs/specs/` — 불일치 시 문서 먼저
 
+### 파생·조회 시 계산 필드 (DB 컬럼 없음)
+
+Entity·`user` 테이블에 **저장되지 않는** API 필드(예: `hasPreSchedule`)는 아래를 **반드시** 남긴다.
+
+| 위치 | 필수 내용 |
+|------|-----------|
+| **DTO `@Schema(description)`** | SSOT(어떤 row/조건인지) · **저장 안 함** · **true/false가 바뀌는 트리거**(어떤 CRUD) · **값이 클라이언트에 실리는 API**(login/me 등) |
+| **계산 Service** (`UserSummaryService` 등) | 클래스·public 메서드 `//` — **어디서 호출되는지**, EXISTS/집계 **How**, `#22`/BR **Why** |
+| **Repository** | EXISTS·집계 메서드 — **파생 필드 SSOT 조회**임을 한 줄 (`existsByUserId` 등) |
+| **스펙** | `docs/specs/` 해당 정책 ID (예: D-JOIN-3, D-BR006-C) |
+
+- ❌ DTO 필드명만으로 “알아서 파생값” 가정 — OpenAPI·프론트 계약 깨짐
+- 일정 CRUD 응답에 `user` 요약이 **없으면** `@Schema` 또는 Service 주석에 **me 재조회 필요** 명시
+
 ```java
 @Schema(description = "소셜 로그인 요청")
 public record LoginRequest(
@@ -229,7 +243,7 @@ ResponseEntity<...> updateProfile(
 | **Controller** | 접근 권한(`@AuthorizedUser`, `@TripMemberOnly` 등)·인터셉터·`@Valid` 검증 흐름. 비즈니스 로직 설명 금지 |
 | **Service** | BR-*·wave 정책, 분기 **이유(Why)**, `@Transactional`·외부 API·Stream에서 non-obvious한 선택. **다단계 유스케이스는 `// 1.` `// 2.` 단계 주석** |
 | **client** | 외부 OAuth·HTTP 검증 흐름 — Service와 동일하게 단계·catch 의도 |
-| **Repository** | `@Query` 정렬·필터·fetch 의도 |
+| **Repository** | `@Query` 정렬·필터·fetch 의도. **파생 API 필드용 EXISTS·집계**는 SSOT 조회임을 한 줄 |
 | **DTO/Entity** | `@Schema`로 안 담기는 배경(formatter off, 경계 record 등). enum·필드는 `@Schema` 우선 |
 
 ### Service · client 메서드 주석

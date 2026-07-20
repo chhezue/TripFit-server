@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +20,7 @@ import com.tripfit.tripfit.common.exception.TripFitException;
 import com.tripfit.tripfit.user.domain.SocialProvider;
 import com.tripfit.tripfit.user.domain.User;
 import com.tripfit.tripfit.user.repository.UserRepository;
+import com.tripfit.tripfit.user.service.UserSummaryService;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,6 +47,9 @@ class AuthServiceTest {
   private RefreshTokenService refreshTokenService;
 
   @Mock
+  private UserSummaryService userSummaryService;
+
+  @Mock
   private SocialTokenVerifier socialTokenVerifier;
 
   @InjectMocks
@@ -61,6 +66,23 @@ class AuthServiceTest {
             "user@example.com",
             "홍길동",
             "https://example.com/profile.png");
+    lenient()
+        .when(userSummaryService.toSummary(any(User.class)))
+        .thenAnswer(
+            inv -> {
+              User u = inv.getArgument(0);
+              return new com.tripfit.tripfit.user.dto.UserSummaryResponse(
+                  u.getId(),
+                  u.getEmail(),
+                  u.getFirstName(),
+                  u.getLastName(),
+                  u.getNickname(),
+                  u.getProfileImageUrl(),
+                  u.getProvider(),
+                  u.isGoogleCalendarConnected(),
+                  false,
+                  u.isAllFree());
+            });
   }
 
   @Test
@@ -89,7 +111,7 @@ class AuthServiceTest {
     assertThat(response.user().lastName()).isNull();
     assertThat(response.user().nickname()).isEqualTo("홍길동");
     assertThat(response.user().profileImageUrl()).isEqualTo("https://example.com/profile.png");
-    assertThat(response.user().isOptionalOnboardingCompleted()).isFalse();
+    assertThat(response.user().hasPreSchedule()).isFalse();
   }
 
   @Test
